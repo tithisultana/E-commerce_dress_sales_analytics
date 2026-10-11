@@ -33,10 +33,23 @@ def get_dataset() -> pd.DataFrame:
     if frame.empty:
         raise DatasetError("Dataset contains no transaction rows")
 
-    frame = frame.copy()
+    frame = frame.drop_duplicates().copy()
+    frame["Date"] = pd.to_datetime(frame["Date"], errors="coerce")
+
     for column in NUMERIC_COLUMNS:
         frame[column] = pd.to_numeric(frame[column], errors="coerce")
-    frame["Date"] = pd.to_datetime(frame["Date"], errors="coerce")
+        median = frame[column].median()
+        if pd.notna(median):
+            frame[column] = frame[column].fillna(median)
+
+    for column in frame.select_dtypes(include=["object", "string"]).columns:
+        if column not in REQUIRED_COLUMNS:
+            continue
+        frame[column] = frame[column].astype("string").str.strip()
+        frame[column] = frame[column].replace("", pd.NA)
+        mode = frame[column].mode(dropna=True)
+        if not mode.empty:
+            frame[column] = frame[column].fillna(mode.iloc[0])
 
     invalid_counts = frame[list(REQUIRED_COLUMNS)].isna().sum()
     for column in REQUIRED_COLUMNS:
@@ -55,9 +68,12 @@ def get_dataset() -> pd.DataFrame:
     if not frame["Rating"].between(0, 5).all():
         raise DatasetError("Rating must be between 0 and 5")
 
-    frame = frame.drop_duplicates().copy()
     frame["Gross_Sales"] = frame["Price"] * frame["Quantity"]
-    frame["Discount_Amount"] = frame["Gross_Sales"] * frame["Discount"] / 100
+    frame["Discount_Amount"] = frame["Gross_Sales"] * (frame["Discount"] / 100)
     frame["Net_Sales"] = frame["Gross_Sales"] - frame["Discount_Amount"]
+    frame["Year"] = frame["Date"].dt.year
+    frame["Month"] = frame["Date"].dt.month
+    frame["Month_Name"] = frame["Date"].dt.month_name()
+    frame["Day_of_Week"] = frame["Date"].dt.day_name()
     frame["Period"] = frame["Date"].dt.to_period("M").astype(str)
     return frame

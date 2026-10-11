@@ -58,7 +58,7 @@ def top_products_data(limit: int = 10) -> dict:
     products = frame.groupby(["Product_ID", "Product_Name", "Category", "Brand"], as_index=False).agg(
         revenue=("Net_Sales", "sum"), units=("Quantity", "sum"), orders=("Order_ID", "nunique"),
         rating=("Rating", "mean"), price=("Price", "mean"), discount=("Discount", "mean")
-    ).sort_values("revenue", ascending=False)
+    ).sort_values("units", ascending=False)
     materials = frame.groupby("Material", as_index=False).agg(units=("Quantity", "sum")).sort_values("units", ascending=False)
     sizes = frame.groupby("Size", as_index=False).agg(units=("Quantity", "sum"))
     return {"products": records(products.head(limit)), "materials": records(materials), "sizes": records(sizes)}
@@ -107,18 +107,18 @@ def customer_analysis_data() -> dict:
 
 def customer_segments_data() -> dict:
     frame = get_dataset()
-    customers = frame.groupby("Customer_ID", as_index=False).agg(
-        spend=("Gross_Sales", "sum"), items=("Quantity", "sum"), orders=("Order_ID", "nunique")
+    customer_sales = frame.assign(Sales=frame["Price"] * frame["Quantity"])
+    customers = customer_sales.groupby("Customer_ID", as_index=False).agg(
+        spend=("Sales", "sum"), items=("Quantity", "sum"), orders=("Order_ID", "nunique")
     )
-    feature_columns = ["spend", "orders", "items"]
+    feature_columns = ["spend", "items", "orders"]
     scaled = StandardScaler().fit_transform(customers[feature_columns])
     customers["cluster"] = KMeans(n_clusters=3, random_state=42, n_init=10).fit_predict(scaled)
     summary = customers.groupby("cluster", as_index=False).agg(
         customers=("Customer_ID", "count"), spend=("spend", "mean"), items=("items", "mean"), orders=("orders", "mean")
-    ).sort_values("spend")
-    labels = dict(zip(summary["cluster"], ["Emerging", "Regular", "High value"]))
-    customers["segment"] = customers["cluster"].map(labels)
-    summary["segment"] = summary["cluster"].map(labels)
+    ).sort_values("cluster")
+    customers["segment"] = customers["cluster"]
+    summary["segment"] = summary["cluster"]
     summary[["spend", "items", "orders"]] = summary[["spend", "items", "orders"]].round(2)
     sample = customers.sample(min(500, len(customers)), random_state=42)
     return {"summary": records(summary), "customers": records(sample)}
@@ -133,7 +133,7 @@ def methodology_data() -> dict:
         "date_end": frame["Date"].max().strftime("%Y-%m-%d"),
         "missing_values": int(frame[list(REQUIRED_COLUMNS)].isna().sum().sum()),
         "duplicate_rows_removed": int(source.duplicated().sum()),
-        "revenue_definition": "Price x Quantity x (1 - Discount / 100)",
-        "segmentation": "K-Means (k=3) on standardized customer gross spend, items, and order count.",
-        "prediction": "Quantity prediction; 80/20 random split (seed 42), one-hot encoded categories, Linear Regression baseline and Random Forest (200 trees).",
+        "revenue_definition": "Net Sales = Price × Quantity × (1 - Discount / 100)",
+        "segmentation": "Customer spending in EDA uses Net Sales after discount, while K-Means segmentation uses gross sales (Price × Quantity), following the respective notebooks.",
+        "prediction": "Quantity prediction; 80/20 random split (seed 42), median/mode imputation, one-hot encoded categories, Linear Regression baseline and Random Forest (200 trees).",
     }

@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
+from sklearn.impute import SimpleImputer
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
@@ -32,8 +33,19 @@ class PredictionInput(BaseModel):
 def _pipeline(estimator) -> Pipeline:
     preprocessing = ColumnTransformer(
         [
-            ("numeric", "passthrough", NUMERIC_FEATURES),
-            ("categorical", OneHotEncoder(handle_unknown="ignore"), CATEGORICAL_FEATURES),
+            (
+                "numeric",
+                Pipeline([("imputer", SimpleImputer(strategy="median"))]),
+                NUMERIC_FEATURES,
+            ),
+            (
+                "categorical",
+                Pipeline([
+                    ("imputer", SimpleImputer(strategy="most_frequent")),
+                    ("onehot", OneHotEncoder(handle_unknown="ignore")),
+                ]),
+                CATEGORICAL_FEATURES,
+            ),
         ]
     )
     return Pipeline([("preprocessor", preprocessing), ("model", estimator)])
