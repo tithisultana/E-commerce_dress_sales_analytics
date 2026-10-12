@@ -5,3 +5,31 @@ __pycache__/
 frontend/node_modules/
 frontend/dist/
 .DS_Store
+
+# ---------------------------------------------------------------------------
+# 10M Data Architecture — raw and large data files
+# These are processed offline and must never be committed to git.
+# The website backend reads only the small processed summary files under
+# data/processed/, which ARE committed (they are tiny JSON/CSV outputs).
+# ---------------------------------------------------------------------------
+
+# Raw large data directory (10M+ row CSV or compressed files live here)
+data/raw/
+
+# Compressed raw data archives (any location)
+*.csv.gz
+*.csv.bz2
+*.csv.zip
+
+# 10M synthetic dataset files (any location, any extension)
+dress_sales_10M*
+
+# Parquet files (columnar format used for intermediate processing)
+*.parquet
+
+# Any directory named large_data/
+large_data/
+
+# Serialized ML model artifacts (can be large — regenerate from script)
+*.pkl
+*.joblib
