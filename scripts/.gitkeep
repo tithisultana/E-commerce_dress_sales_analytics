@@ -1,0 +1,3 @@
+# This directory holds data processing scripts that run independently
+# from the web backend. Scripts here are run once (or periodically) to
+# regenerate processed summary files used by the dashboard.
