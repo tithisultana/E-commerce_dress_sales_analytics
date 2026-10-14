@@ -57,8 +57,8 @@ def top_products(limit: int = Query(default=10, ge=1, le=100)) -> dict:
 
 @router.get("/customers")
 @router.get("/customers/analysis")
-def customers() -> dict:
-    return analytics.customer_analysis_data()
+def customers(limit: int = Query(default=200, ge=1, le=1000)) -> dict:
+    return analytics.customer_analysis_data(limit=limit)
 
 
 @router.get("/segments")

@@ -61,6 +61,8 @@ def overview_data() -> dict:
             "date_range":       s["date_range"],
             "monthly_revenue":  s["monthly"],
             "category_revenue": s["categories"],
+            "payments":         s.get("payments", []),
+            "locations":        s.get("locations", []),
         }
 
     # -----------------------------------------------------------------
@@ -86,6 +88,8 @@ def overview_data() -> dict:
         },
         "monthly_revenue":  monthly_sales_data()["monthly"],
         "category_revenue": categories,
+        "payments":         payment_distribution_data(),
+        "locations":        location_sales_data(),
     }
 
 
@@ -259,14 +263,15 @@ def location_sales_data() -> list[dict]:
 # Customer Analysis
 # ===========================================================================
 
-def customer_analysis_data() -> dict:
+def customer_analysis_data(limit: int = 200) -> dict:
     """Customer spending summary, top customers, age groups, and locations.
 
     10M path:
         Reads customer_agg_10M.csv (one row per customer, 500k rows).
         Age groups are computed from the agg CSV — fast single-column scan.
-        The frontend table is paginated; all 500k rows are returned but the
-        API response is ~25 MB maximum (the CSV itself is ~20 MB).
+        The full customer table is capped to a dashboard-safe sample (limit=200)
+        to prevent transferring a massive 70 MB JSON payload over HTTP,
+        which could trigger memory exhaustion on constrained hosting.
         Top customers: head(12) by spend (already sorted desc in the file).
 
     Fallback:
@@ -291,7 +296,7 @@ def customer_analysis_data() -> dict:
         s = get_summary_10m()["customer_stats"]
         return {
             "top_customers":             records(customers.head(12)),
-            "customers":                 records(customers),
+            "customers":                 records(customers.head(limit)),
             "locations":                 location_sales_data(),
             "age_groups":                records(age_groups),
             "repeat_customers":          int(s["repeat_customers"]),
@@ -326,7 +331,7 @@ def customer_analysis_data() -> dict:
     )
     return {
         "top_customers": records(customers.head(12)),
-        "customers":     records(customers),
+        "customers":     records(customers.head(limit)),
         "locations":     location_sales_data(),
         "age_groups":    records(age_groups),
         "repeat_customers":          int((customers["orders"] > 1).sum()),
@@ -344,9 +349,7 @@ def customer_segments_data() -> dict:
     """K-Means customer segmentation — summary + scatter chart sample.
 
     10M path:
-        Cluster labels are pre-computed in the ETL script and stored in
-        customer_agg_10M.csv. The cluster summary is re-derived from the
-        agg CSV (fast — 500k rows, not 10M transactions).
+        Cluster summary is pre-computed and stored in dashboard_summary_10M.json.
         The scatter chart sample comes from prediction_sample_10M.csv
         (≤ 4,500 rows — the browser never receives the full 500k table).
         Features: Total_Spending (spend), Total_Items (items),
@@ -357,29 +360,15 @@ def customer_segments_data() -> dict:
         Features: spend (gross), items, orders — consistent with Notebook 3.
     """
     if USE_10M_DATA:
-        customers = get_customer_agg_10m()
+        s         = get_summary_10m()
         scatter   = get_prediction_sample_10m()
-
-        # Cluster summary from the pre-segmented customer table
-        # (cluster column was assigned by MiniBatchKMeans in the ETL script)
-        summary = (
-            customers.groupby("cluster", as_index=False)
-            .agg(
-                customers=("Customer_ID", "count"),
-                spend=("spend", "mean"),
-                items=("items", "mean"),
-                orders=("orders", "mean"),
-            )
-            .sort_values("spend")
-        )
-        summary[["spend", "items", "orders"]] = (
-            summary[["spend", "items", "orders"]].round(2)
-        )
-        # Align column name used by frontend ("segment" == "cluster")
-        summary["segment"] = summary["cluster"]
-
+        cluster_summary = s.get("cluster_summary", [])
+        summary = [
+            dict(c, segment=c.get("cluster", idx))
+            for idx, c in enumerate(cluster_summary)
+        ]
         return {
-            "summary":   records(summary),
+            "summary":   summary,
             "customers": records(scatter),  # ≤ 4,500 points for scatter chart
         }
 
