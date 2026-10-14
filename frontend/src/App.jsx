@@ -10,7 +10,16 @@ import {
   Legend, Line, Pie, PieChart, ResponsiveContainer, Scatter, ScatterChart,
   Tooltip, XAxis, YAxis,
 } from 'recharts'
-import { apiRequest, loadDashboardData } from './api.js'
+import {
+  apiRequest,
+  loadOverviewData,
+  loadSalesData,
+  loadProductData,
+  loadCustomerData,
+  loadSegmentData,
+  loadPredictionData,
+  loadMethodologyData,
+} from './api.js'
 
 const navigation = [
   { id: 'overview', label: 'Dashboard / Overview', icon: Layers3 },
@@ -793,28 +802,107 @@ function Methodology({ data }) {
 export default function App() {
   const [active, setActive] = useState('overview')
   const [menuOpen, setMenuOpen] = useState(false)
-  const [data, setData] = useState(null)
-  const [loadError, setLoadError] = useState('')
+
+  // 1. Startup: Minimum required endpoint (/api/overview)
+  const [overviewData, setOverviewData] = useState(null)
+  const [initialLoading, setInitialLoading] = useState(true)
+  const [initialError, setInitialError] = useState('')
   const [refreshing, setRefreshing] = useState(false)
+
+  // 2. Page-specific data caches, loading, and error states
+  const [pageData, setPageData] = useState({})
+  const [pageLoading, setPageLoading] = useState({})
+  const [pageErrors, setPageErrors] = useState({})
+
+  // Prediction form states
   const [prediction, setPrediction] = useState(null)
   const [predictionError, setPredictionError] = useState('')
   const [predictionLoading, setPredictionLoading] = useState(false)
 
-  async function refresh() {
-    setRefreshing(true)
-    setLoadError('')
+  // Initial startup: Load ONLY /api/overview
+  async function loadInitialOverview() {
+    setInitialLoading(true)
+    setInitialError('')
     try {
-      setData(await loadDashboardData())
+      const data = await loadOverviewData()
+      setOverviewData(data)
     } catch (error) {
-      setLoadError(error.message)
+      setInitialError(error.message)
     } finally {
+      setInitialLoading(false)
       setRefreshing(false)
     }
   }
 
   useEffect(() => {
-    refresh()
+    loadInitialOverview()
   }, [])
+
+  // Lazy load page-specific data only when user opens that page
+  async function loadPage(pageId, force = false) {
+    if (pageId === 'overview') {
+      if (force) {
+        setRefreshing(true)
+        await loadInitialOverview()
+      }
+      return
+    }
+
+    if (!force && pageData[pageId]) {
+      return
+    }
+
+    setPageLoading(prev => ({ ...prev, [pageId]: true }))
+    setPageErrors(prev => ({ ...prev, [pageId]: '' }))
+
+    try {
+      let result = null
+      if (pageId === 'sales') {
+        result = await loadSalesData()
+        if (result?.error && !result?.monthly?.monthly?.length) {
+          throw new Error(result.error)
+        }
+      } else if (pageId === 'products') {
+        result = await loadProductData()
+      } else if (pageId === 'customers') {
+        result = await loadCustomerData()
+      } else if (pageId === 'segments') {
+        result = await loadSegmentData()
+      } else if (pageId === 'prediction') {
+        result = await loadPredictionData()
+      } else if (pageId === 'methodology') {
+        result = await loadMethodologyData()
+      }
+
+      if (result) {
+        setPageData(prev => ({ ...prev, [pageId]: result }))
+      }
+    } catch (error) {
+      setPageErrors(prev => ({ ...prev, [pageId]: error.message }))
+    } finally {
+      setPageLoading(prev => ({ ...prev, [pageId]: false }))
+    }
+  }
+
+  // Trigger lazy loading when tab switches
+  useEffect(() => {
+    if (active !== 'overview') {
+      loadPage(active)
+    }
+  }, [active])
+
+  async function handleRefresh() {
+    setRefreshing(true)
+    if (active === 'overview') {
+      await loadInitialOverview()
+    } else {
+      await Promise.allSettled([
+        loadInitialOverview(),
+        loadPage(active, true),
+      ])
+      setRefreshing(false)
+    }
+  }
 
   async function submitPrediction(form) {
     setPredictionLoading(true)
@@ -841,6 +929,20 @@ export default function App() {
   }
   const activePage = pageCopy[active]
 
+  // Combined data structure matching expected page props
+  const combinedData = {
+    overview: overviewData?.overview,
+    categories: pageData.sales?.categories?.length ? pageData.sales.categories : (overviewData?.categories || []),
+    payments: pageData.sales?.payments?.length ? pageData.sales.payments : (overviewData?.payments || []),
+    locations: pageData.sales?.locations?.length ? pageData.sales.locations : (overviewData?.locations || []),
+    monthly: pageData.sales?.monthly,
+    products: pageData.products?.products,
+    customers: pageData.customers?.customers,
+    segments: pageData.segments?.segments,
+    models: pageData.prediction?.models,
+    methodology: pageData.methodology?.methodology || overviewData?.overview?.methodology || {},
+  }
+
   return (
     <div className="app-shell">
       <aside className={`sidebar ${menuOpen ? 'open' : ''}`}>
@@ -864,10 +966,10 @@ export default function App() {
         </nav>
         <div className="sidebar-bottom">
           <div className="data-status">
-            <span className={`status-dot ${data ? '' : 'loading'}`} />
+            <span className={`status-dot ${overviewData ? '' : 'loading'}`} />
             <div>
-              <strong>{data ? 'Dataset loaded' : 'Connecting to API'}</strong>
-              <small>{data ? `${numeric(data.overview.kpis.orders)} orders loaded` : 'FastAPI · port 8000'}</small>
+              <strong>{overviewData ? 'Dataset loaded' : 'Connecting to API'}</strong>
+              <small>{overviewData ? `${numeric(overviewData.overview.kpis.orders)} orders loaded` : 'FastAPI · Render'}</small>
             </div>
           </div>
           <div className="profile">
@@ -894,9 +996,9 @@ export default function App() {
           <div className="topbar-right">
             <span className="date-pill">
               <Clock3 size={14} />
-              {data ? `${data.overview.date_range.start} — ${data.overview.date_range.end}` : 'Dataset period'}
+              {overviewData ? `${overviewData.overview.date_range.start} — ${overviewData.overview.date_range.end}` : 'Dataset period'}
             </span>
-            <button className="icon-button" title="Refresh data" aria-label="Refresh data" onClick={refresh}>
+            <button className="icon-button" title="Refresh data" aria-label="Refresh data" onClick={handleRefresh}>
               <RotateCw size={16} className={refreshing ? 'spin' : ''} />
             </button>
           </div>
@@ -914,32 +1016,110 @@ export default function App() {
             </button>
           </div>
 
-          {!data && !loadError && (
+          {initialLoading && (
             <div className="loading-state">
               <LoaderCircle className="spin" size={24} />
               <span>Loading processed analytics summaries…</span>
             </div>
           )}
 
-          {loadError && (
+          {initialError && !overviewData && (
             <div className="error-state" role="alert">
               <strong>Analytics API unavailable</strong>
-              <p>{loadError}</p>
-              <button className="primary-button" onClick={refresh}>
+              <p>{initialError}</p>
+              <button className="primary-button" onClick={loadInitialOverview}>
                 <RotateCw size={15} />Retry connection
               </button>
             </div>
           )}
 
-          {data && (
+          {overviewData && (
             <div className="page-enter" key={active}>
-              {active === 'overview' && <Overview data={data} />}
-              {active === 'sales' && <SalesAnalytics data={data} />}
-              {active === 'products' && <ProductAnalytics data={data} />}
-              {active === 'customers' && <CustomerAnalytics data={data} />}
-              {active === 'segments' && <CustomerSegmentation data={data} />}
-              {active === 'prediction' && <SalesPrediction data={data} onPredict={submitPrediction} result={prediction} loading={predictionLoading} error={predictionError} />}
-              {active === 'methodology' && <Methodology data={data} />}
+              {active === 'overview' && <Overview data={combinedData} />}
+
+              {active === 'sales' && (
+                pageLoading.sales ? (
+                  <div className="loading-state"><LoaderCircle className="spin" size={24} /><span>Loading sales analytics…</span></div>
+                ) : pageErrors.sales ? (
+                  <div className="error-state" role="alert">
+                    <strong>Sales analytics unavailable</strong>
+                    <p>{pageErrors.sales}</p>
+                    <button className="primary-button" onClick={() => loadPage('sales', true)}><RotateCw size={15} />Retry</button>
+                  </div>
+                ) : combinedData.monthly ? (
+                  <SalesAnalytics data={combinedData} />
+                ) : null
+              )}
+
+              {active === 'products' && (
+                pageLoading.products ? (
+                  <div className="loading-state"><LoaderCircle className="spin" size={24} /><span>Loading product analytics…</span></div>
+                ) : pageErrors.products ? (
+                  <div className="error-state" role="alert">
+                    <strong>Product analytics unavailable</strong>
+                    <p>{pageErrors.products}</p>
+                    <button className="primary-button" onClick={() => loadPage('products', true)}><RotateCw size={15} />Retry</button>
+                  </div>
+                ) : combinedData.products ? (
+                  <ProductAnalytics data={combinedData} />
+                ) : null
+              )}
+
+              {active === 'customers' && (
+                pageLoading.customers ? (
+                  <div className="loading-state"><LoaderCircle className="spin" size={24} /><span>Loading customer analytics…</span></div>
+                ) : pageErrors.customers ? (
+                  <div className="error-state" role="alert">
+                    <strong>Customer analytics unavailable</strong>
+                    <p>{pageErrors.customers}</p>
+                    <button className="primary-button" onClick={() => loadPage('customers', true)}><RotateCw size={15} />Retry</button>
+                  </div>
+                ) : combinedData.customers ? (
+                  <CustomerAnalytics data={combinedData} />
+                ) : null
+              )}
+
+              {active === 'segments' && (
+                pageLoading.segments ? (
+                  <div className="loading-state"><LoaderCircle className="spin" size={24} /><span>Loading customer segments…</span></div>
+                ) : pageErrors.segments ? (
+                  <div className="error-state" role="alert">
+                    <strong>Customer segments unavailable</strong>
+                    <p>{pageErrors.segments}</p>
+                    <button className="primary-button" onClick={() => loadPage('segments', true)}><RotateCw size={15} />Retry</button>
+                  </div>
+                ) : combinedData.segments ? (
+                  <CustomerSegmentation data={combinedData} />
+                ) : null
+              )}
+
+              {active === 'prediction' && (
+                pageLoading.prediction ? (
+                  <div className="loading-state"><LoaderCircle className="spin" size={24} /><span>Loading demand forecast models…</span></div>
+                ) : pageErrors.prediction ? (
+                  <div className="error-state" role="alert">
+                    <strong>Demand forecast models unavailable</strong>
+                    <p>{pageErrors.prediction}</p>
+                    <button className="primary-button" onClick={() => loadPage('prediction', true)}><RotateCw size={15} />Retry</button>
+                  </div>
+                ) : combinedData.models ? (
+                  <SalesPrediction data={combinedData} onPredict={submitPrediction} result={prediction} loading={predictionLoading} error={predictionError} />
+                ) : null
+              )}
+
+              {active === 'methodology' && (
+                pageLoading.methodology ? (
+                  <div className="loading-state"><LoaderCircle className="spin" size={24} /><span>Loading architecture documentation…</span></div>
+                ) : pageErrors.methodology ? (
+                  <div className="error-state" role="alert">
+                    <strong>Methodology documentation unavailable</strong>
+                    <p>{pageErrors.methodology}</p>
+                    <button className="primary-button" onClick={() => loadPage('methodology', true)}><RotateCw size={15} />Retry</button>
+                  </div>
+                ) : combinedData.methodology ? (
+                  <Methodology data={combinedData} />
+                ) : null
+              )}
             </div>
           )}
 
