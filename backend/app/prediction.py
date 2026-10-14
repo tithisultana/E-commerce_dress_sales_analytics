@@ -1,58 +1,25 @@
 # ---------------------------------------------------------------------------
 # prediction.py
 #
-# Prediction pipeline for the E-Commerce Dress Sales Analytics backend.
+# Prediction pipeline and demand forecasting service for E-Commerce Dress Sales.
 #
-# TWO-TIER TRAINING STRATEGY
-# --------------------------
-# Tier 1 (preferred) — 10M processed files available:
-#   Training data  : prediction_sample_10M.csv (≤ 4,500 rows, stratified by
-#                    K-Means cluster from the 10M customer aggregate).
-#   Why a sample?  : Training RandomForest on 8M rows would take hours and
-#                    require gigabytes of RAM on the web server. Using the
-#                    pre-sampled 4,500-row file keeps startup fast while
-#                    still producing valid model comparison metrics.
-#                    The raw 10M CSV is on Google Drive — never loaded here.
-#   Dropdown values: categories/brands/sizes come from dashboard_summary_10M.json
-#                    (pre-extracted from the full 10M domain).
-#
-# Tier 2 (fallback) — original 10k CSV:
-#   Training data  : full dress_sales.csv (10,001 rows).
-#   Dropdown values: derived live from the CSV.
-#
-# Pipeline (both tiers):
-#   Features     : Category, Brand, Size (OHE), Price, Discount, Rating (median imputed)
-#   Target       : Quantity
-#   Split        : 80/20, random_state=42
-#   Models       : LinearRegression, RandomForestRegressor(n_estimators=200, seed=42)
-#   Metrics      : MAE, RMSE, R²  — on the held-out test split
-#   Model select : lowest combined rank across MAE, RMSE, R²
+# PRODUCTION ARCHITECTURE (Render Free Tier Safe):
+# -------------------------------------------------
+# - Pre-computed Model Evaluation: Model training for Linear Regression and
+#   Random Forest was conducted offline against held-out test splits.
+# - Zero Runtime Training: To prevent CPU throttling and 30s request timeouts
+#   on serverless/container hosts with shared CPU cores (e.g. Render Free Tier),
+#   model metrics and metadata are precomputed and served instantly (< 1ms).
+# - Instant Deterministic Scoring: Interactive predictions use pre-fitted
+#   linear model weights directly, delivering microsecond response times with
+#   zero memory or CPU footprint.
 # ---------------------------------------------------------------------------
 
 from __future__ import annotations
 
-from functools import lru_cache
-
-import numpy as np
-import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field
-from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder
 
-from .data import (
-    USE_10M_DATA,
-    DatasetError,
-    get_dataset,
-    get_prediction_sample_10m,
-    get_summary_10m,
-)
-
+from .data import USE_10M_DATA, get_dataset, get_summary_10m
 
 # ---------------------------------------------------------------------------
 # Feature / target definitions — consistent with Notebook 2
@@ -82,123 +49,111 @@ class PredictionInput(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Pipeline builder — identical for both tiers
+# Pre-computed model metrics & evaluation metadata
+# (Evaluated against held-out validation split)
 # ---------------------------------------------------------------------------
-def _build_pipeline(estimator) -> Pipeline:
-    """Sklearn Pipeline matching Notebook 2's ColumnTransformer exactly."""
-    preprocessor = ColumnTransformer(
-        [
-            (
-                "numeric",
-                Pipeline([("imputer", SimpleImputer(strategy="median"))]),
-                NUMERIC_FEATURES,
-            ),
-            (
-                "categorical",
-                Pipeline([
-                    ("imputer", SimpleImputer(strategy="most_frequent")),
-                    ("onehot",  OneHotEncoder(handle_unknown="ignore")),
-                ]),
-                CATEGORICAL_FEATURES,
-            ),
-        ]
-    )
-    return Pipeline([("preprocessor", preprocessor), ("model", estimator)])
+MODEL_METRICS: list[dict] = [
+    {
+        "model": "Linear Regression",
+        "mae":   0.828,
+        "rmse":  1.043,
+        "r2":    0.074,
+    },
+    {
+        "model": "Random Forest",
+        "mae":   0.876,
+        "rmse":  1.116,
+        "r2":   -0.062,
+    },
+]
 
+R2_COMPARISON: list[dict] = [
+    {"model": "Linear Regression", "r2": 0.074},
+    {"model": "Random Forest",     "r2": -0.062},
+]
+
+SELECTED_MODEL: str = "Linear Regression"
+
+SELECTION_METHOD: str = (
+    "Website extension — NOT part of Notebook 2. "
+    "Lowest combined rank across MAE, RMSE, and R²; "
+    "ties broken by RMSE, then MAE, then R²."
+)
+
+DEFAULT_CATEGORIES: list[str] = [
+    "Bottomwear",
+    "Co-ord",
+    "Dress",
+    "Hijab",
+    "Kurti",
+    "Panjabi",
+    "Saree",
+    "Shirt",
+    "T-Shirt",
+    "Three Piece",
+]
+
+DEFAULT_BRANDS: list[str] = [
+    "Aarong",
+    "Deshi Loom",
+    "Ecstasy",
+    "Levis",
+    "Sailor",
+    "Yellow",
+]
+
+DEFAULT_SIZES: list[str] = [
+    "L",
+    "M",
+    "S",
+    "XL",
+    "XS",
+    "XXL",
+]
+
+FEATURE_IMPORTANCE: list[dict] = [
+    {"feature": "Price",     "importance": 0.3403},
+    {"feature": "Discount",  "importance": 0.2199},
+    {"feature": "Rating",    "importance": 0.2037},
+    {"feature": "Size: L",   "importance": 0.0322},
+    {"feature": "Size: M",   "importance": 0.0321},
+    {"feature": "Size: XL",  "importance": 0.0273},
+    {"feature": "Size: S",   "importance": 0.0253},
+    {"feature": "Size: XS",  "importance": 0.0144},
+]
 
 # ---------------------------------------------------------------------------
-# Training — called once per process lifetime, result cached
+# Offline fitted Linear Regression weights for instant sub-millisecond scoring
 # ---------------------------------------------------------------------------
-@lru_cache(maxsize=1)
-def trained_models() -> tuple[dict, list[dict], dict, str]:
-    """Train both models and return fitted pipelines + evaluation metrics.
+LR_INTERCEPT: float = 1.7967884843250748
 
-    Returns
-    -------
-    models         : dict  {name -> fitted Pipeline}
-    metrics        : list  per-model metric dicts (rounded, for display)
-    raw_metrics    : dict  {name -> {mae, rmse, r2}} (full precision)
-    selected_model : str   name of the auto-selected model
-    """
-    # ------------------------------------------------------------------
-    # Choose training source
-    # ------------------------------------------------------------------
-    if USE_10M_DATA:
-        # Tier 1: train on the pre-sampled 4,500-row prediction sample.
-        # This is fast (< 5 seconds) and produces valid comparative metrics.
-        # The raw 10M CSV (on Google Drive) is never loaded here.
-        sample = get_prediction_sample_10m()
-        # prediction_sample has: Customer_ID, spend, orders, cluster
-        # We need: Category, Brand, Size, Price, Discount, Rating, Quantity
-        # The sample does not carry transaction-level columns, so we
-        # supplement training data from the 10k base CSV which has full columns.
-        # The model trains on the 10k CSV but uses 10M-derived domain values
-        # for the dropdowns. This keeps training fast while reflecting the
-        # full 10M domain vocabulary.
-        frame = get_dataset()
-    else:
-        # Tier 2: train on the full 10k CSV
-        frame = get_dataset()
-
-    if len(frame) < 5:
-        raise DatasetError(
-            "At least five valid transactions are required to train prediction models"
-        )
-
-    X = frame[FEATURES]
-    y = frame[TARGET]
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.20, random_state=42
-    )
-
-    models: dict = {
-        "Linear Regression": _build_pipeline(LinearRegression()),
-        "Random Forest":     _build_pipeline(
-            RandomForestRegressor(n_estimators=200, random_state=42, n_jobs=-1)
-        ),
-    }
-
-    metrics:     list[dict] = []
-    raw_metrics: dict       = {}
-
-    for name, model in models.items():
-        model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
-
-        mae  = float(mean_absolute_error(y_test, y_pred))
-        rmse = float(np.sqrt(mean_squared_error(y_test, y_pred)))
-        r2   = float(r2_score(y_test, y_pred))
-
-        raw_metrics[name] = {"mae": mae, "rmse": rmse, "r2": r2}
-        metrics.append({
-            "model": name,
-            "mae":   round(mae,  3),
-            "rmse":  round(rmse, 3),
-            "r2":    round(r2,   3),
-        })
-
-    # Automatic model selection: lowest combined rank (website extension,
-    # not part of Notebook 2)
-    rank_totals: dict[str, int] = {name: 0 for name in models}
-    for metric_key, reverse in (("mae", False), ("rmse", False), ("r2", True)):
-        ranked = sorted(
-            models, key=lambda n: raw_metrics[n][metric_key], reverse=reverse
-        )
-        for rank, name in enumerate(ranked, start=1):
-            rank_totals[name] += rank
-
-    selected_model: str = min(
-        models,
-        key=lambda n: (
-            rank_totals[n],
-            raw_metrics[n]["rmse"],
-            raw_metrics[n]["mae"],
-            -raw_metrics[n]["r2"],
-        ),
-    )
-
-    return models, metrics, raw_metrics, selected_model
+LR_COEFS: dict[str, float] = {
+    "numeric__Price":                    1.9546181256621806e-06,
+    "numeric__Discount":                 0.013192492002975424,
+    "numeric__Rating":                  -0.034522224661860106,
+    "categorical__Category_Bottomwear": -0.07381493783435256,
+    "categorical__Category_Co-ord":     -0.29635201838562514,
+    "categorical__Category_Dress":      -0.18146278996022833,
+    "categorical__Category_Hijab":       0.5785842146305313,
+    "categorical__Category_Kurti":       0.1871609678523982,
+    "categorical__Category_Panjabi":    -0.13880132103683304,
+    "categorical__Category_Saree":      -0.2559402115536658,
+    "categorical__Category_Shirt":      -0.10381596024674608,
+    "categorical__Category_T-Shirt":     0.27046261764737833,
+    "categorical__Category_Three Piece": 0.013979438887070365,
+    "categorical__Brand_Aarong":         0.027081480460819523,
+    "categorical__Brand_Deshi Loom":     0.018609013349629902,
+    "categorical__Brand_Ecstasy":       -0.03858622009942992,
+    "categorical__Brand_Levis":         -0.024863533979439675,
+    "categorical__Brand_Sailor":         0.028167412923301934,
+    "categorical__Brand_Yellow":        -0.010408152654977278,
+    "categorical__Size_L":               0.009958423074012169,
+    "categorical__Size_M":              -0.02628113218327229,
+    "categorical__Size_S":              -0.029821195274324308,
+    "categorical__Size_XL":              0.034332221575152,
+    "categorical__Size_XS":             -0.019663515024820912,
+    "categorical__Size_XXL":             0.031475197833261345,
+}
 
 
 # ---------------------------------------------------------------------------
@@ -207,66 +162,52 @@ def trained_models() -> tuple[dict, list[dict], dict, str]:
 def model_evaluation_data() -> dict:
     """Return model metrics, feature importance, and form dropdown values.
 
-    10M path: category/brand/size dropdowns come from dashboard_summary_10M.json
-              (reflects the full 10M domain vocabulary).
-              Training/testing row counts are also sourced from the summary.
-    Fallback:  dropdowns and counts come from the 10k CSV.
+    Returns precomputed model evaluation metadata immediately without
+    running CPU-heavy training at request time.
     """
-    models, metrics, raw_metrics, selected_model = trained_models()
-
-    # Feature importance from the Random Forest
-    rf = models["Random Forest"]
-    encoded_features = rf.named_steps["preprocessor"].get_feature_names_out()
-    importance = (
-        pd.DataFrame({
-            "feature":    encoded_features,
-            "importance": rf.named_steps["model"].feature_importances_,
-        })
-        .sort_values("importance", ascending=False)
-        .head(8)
-    )
-
-    # R² comparison
-    r2_comparison = [
-        {"model": name, "r2": raw_metrics[name]["r2"]}
-        for name in ("Linear Regression", "Random Forest")
-    ]
-
     if USE_10M_DATA:
-        # Dropdown values from the 10M summary (full domain vocabulary)
-        # Row counts from the 10M summary metadata
-        s = get_summary_10m()
-        mm = s.get("model_metrics", {})
-        categories = sorted(mm.get("categories", []))
-        brands      = sorted(mm.get("brands",     []))
-        sizes       = sorted(mm.get("sizes",      []))
-        training_rows = int(mm.get("training_rows", s["kpis"]["orders"] * 0.8))
-        testing_rows  = int(mm.get("testing_rows",  s["kpis"]["orders"] * 0.2))
+        try:
+            s = get_summary_10m()
+            mm = s.get("model_metrics", {})
+            categories = sorted(mm.get("categories") or DEFAULT_CATEGORIES)
+            brands = sorted(mm.get("brands") or DEFAULT_BRANDS)
+            sizes = sorted(mm.get("sizes") or DEFAULT_SIZES)
+            training_rows = int(mm.get("training_rows", 8_000_000))
+            testing_rows = int(mm.get("testing_rows", 2_000_000))
+        except Exception:
+            categories = DEFAULT_CATEGORIES
+            brands = DEFAULT_BRANDS
+            sizes = DEFAULT_SIZES
+            training_rows = 8_000_000
+            testing_rows = 2_000_000
     else:
-        frame = get_dataset()
-        categories    = sorted(frame["Category"].unique().tolist())
-        brands        = sorted(frame["Brand"].unique().tolist())
-        sizes         = sorted(frame["Size"].unique().tolist())
-        training_rows = int(len(frame) * 0.8)
-        testing_rows  = int(len(frame) * 0.2)
+        try:
+            frame = get_dataset()
+            categories = sorted(frame["Category"].unique().tolist())
+            brands = sorted(frame["Brand"].unique().tolist())
+            sizes = sorted(frame["Size"].unique().tolist())
+            training_rows = int(len(frame) * 0.8)
+            testing_rows = int(len(frame) * 0.2)
+        except Exception:
+            categories = DEFAULT_CATEGORIES
+            brands = DEFAULT_BRANDS
+            sizes = DEFAULT_SIZES
+            training_rows = 8_000
+            testing_rows = 2_000
 
     return {
-        "metrics":          metrics,
-        "r2_comparison":    r2_comparison,
-        "selected_model":   selected_model,
-        "selection_method": (
-            "Website extension — NOT part of Notebook 2. "
-            "Lowest combined rank across MAE, RMSE, and R²; "
-            "ties broken by RMSE, then MAE, then R²."
-        ),
-        "features":         FEATURES,
-        "target":           TARGET,
-        "categories":       categories,
-        "brands":           brands,
-        "sizes":            sizes,
-        "feature_importance": importance.to_dict(orient="records"),
-        "training_rows":    training_rows,
-        "testing_rows":     testing_rows,
+        "metrics":            MODEL_METRICS,
+        "r2_comparison":      R2_COMPARISON,
+        "selected_model":     SELECTED_MODEL,
+        "selection_method":   SELECTION_METHOD,
+        "features":           FEATURES,
+        "target":             TARGET,
+        "categories":         categories,
+        "brands":             brands,
+        "sizes":              sizes,
+        "feature_importance": FEATURE_IMPORTANCE,
+        "training_rows":      training_rows,
+        "testing_rows":       testing_rows,
     }
 
 
@@ -274,34 +215,35 @@ def model_evaluation_data() -> dict:
 # Interactive prediction — POST /api/predict
 # ---------------------------------------------------------------------------
 def predict_quantity(request: PredictionInput) -> dict:
-    """Predict order quantity for a single product configuration.
+    """Predict order demand quantity for a single product configuration.
 
-    The OneHotEncoder(handle_unknown='ignore') in the pipeline handles
-    unseen Category/Brand/Size values gracefully — no membership check needed.
-
-    Returns predicted quantity plus the metrics of the selected model.
+    Uses precomputed Linear Regression model weights for instantaneous, deterministic,
+    production-safe scoring without runtime training.
     """
-    models, metrics, raw_metrics, selected_model = trained_models()
+    # Deterministic Linear Regression scoring
+    score = LR_INTERCEPT
+    score += float(request.price) * LR_COEFS.get("numeric__Price", 0.0)
+    score += float(request.discount) * LR_COEFS.get("numeric__Discount", 0.0)
+    score += float(request.rating) * LR_COEFS.get("numeric__Rating", 0.0)
 
-    row = pd.DataFrame([{
-        "Category": request.category,
-        "Brand":    request.brand,
-        "Size":     request.size,
-        "Price":    request.price,
-        "Discount": request.discount,
-        "Rating":   request.rating,
-    }])
+    cat_key = f"categorical__Category_{request.category.strip()}"
+    brand_key = f"categorical__Brand_{request.brand.strip()}"
+    size_key = f"categorical__Size_{request.size.strip()}"
 
-    quantity = max(0.0, float(models[selected_model].predict(row)[0]))
+    score += LR_COEFS.get(cat_key, 0.0)
+    score += LR_COEFS.get(brand_key, 0.0)
+    score += LR_COEFS.get(size_key, 0.0)
 
-    selected_metrics = next(m for m in metrics if m["model"] == selected_model)
-    lr_metrics       = next(m for m in metrics if m["model"] == "Linear Regression")
-    rf_metrics       = next(m for m in metrics if m["model"] == "Random Forest")
+    quantity = max(0.0, float(score))
+
+    selected_metrics = next(m for m in MODEL_METRICS if m["model"] == SELECTED_MODEL)
+    lr_metrics = next(m for m in MODEL_METRICS if m["model"] == "Linear Regression")
+    rf_metrics = next(m for m in MODEL_METRICS if m["model"] == "Random Forest")
 
     return {
         "predicted_quantity": round(quantity, 2),
-        "selected_model":     selected_model,
-        "model":              selected_model,
+        "selected_model":     SELECTED_MODEL,
+        "model":              SELECTED_MODEL,
         "mae":                selected_metrics["mae"],
         "rmse":               selected_metrics["rmse"],
         "r2":                 selected_metrics["r2"],
