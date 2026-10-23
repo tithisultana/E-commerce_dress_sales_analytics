@@ -1,0 +1,85 @@
+{
+  "pipeline_name": "E-Commerce Dress Sales Offline Pipeline (Cutoff 2026-05-31)",
+  "script": "scripts/process_10m_colab.py",
+  "generated_at": "2026-10-22T06:41:12.628837",
+  "execution_mode": "production",
+  "source_dataset": {
+    "path": "/content/drive/MyDrive/Ecommerce_Dress_Sales_10M/raw/dress_sales_10M.csv.gz",
+    "read_mode": "read_only",
+    "raw_overwrite_prevented": true
+  },
+  "date_scope": {
+    "start_date": "2023-01-01",
+    "cutoff_date": "2026-05-31",
+    "period_months": 41,
+    "full_dataset_end": "2026-12-31"
+  },
+  "actual_measurements": {
+    "full_rows": 10000000,
+    "full_units": 30000746,
+    "full_revenue": 62632086622.45,
+    "full_distinct_orders": 10000000,
+    "filtered_rows": 8541250,
+    "filtered_units": 25621922,
+    "filtered_revenue": 53493369922.3,
+    "filtered_distinct_orders": 8541250,
+    "filtered_unique_customers": 500000,
+    "invalid_dates": 0
+  },
+  "reconciliation": {
+    "performed": true,
+    "passed": true,
+    "expected_full_rows": 10000000,
+    "expected_full_units": 30000746,
+    "expected_full_revenue": 62632086622.45,
+    "expected_filtered_rows": 8541250,
+    "expected_filtered_units": 25621922,
+    "expected_filtered_revenue": 53493369922.3,
+    "note": "All production assertions verified."
+  },
+  "calculation_definitions": {
+    "net_revenue": "Price × Quantity × (1 − Discount / 100)",
+    "monetary_precision": "Integer Poisha (cents) accumulation, preventing IEEE 754 floating point drift",
+    "repeat_buyer_definition": "Customer with >= 2 DISTINCT order IDs for the same product within observation window",
+    "distinct_order_rule": "Strict SQL COUNT(DISTINCT order_id); never substituted with row count or summed across buckets",
+    "observation_window": "Earliest recorded sale up to min(first_recorded_sale + 3 years, 2026-05-31)",
+    "category_benchmark": "Arithmetic mean of per-product metrics across all catalog products in category over identical observation window",
+    "first_recorded_sale_disclaimer": "Earliest transaction date proxy; NOT a verified product launch date"
+  },
+  "data_privacy_and_identifiers": {
+    "customer_identifiers_present_in_csv": true,
+    "customer_id_retention_reason": "The aggregate tables customer_agg_10M.csv and prediction_sample_10M.csv retain pseudo-anonymized Customer_ID values required for account ledger pagination and scatter map coordinates.",
+    "customer_identifiers_present_in_json": false,
+    "pii_present": false,
+    "transaction_record_linkage_present": false
+  },
+  "segmentation_parameters": {
+    "features": [
+      "spend",
+      "items",
+      "orders"
+    ],
+    "scaling_means": [
+      106986.73984460003,
+      51.243844,
+      17.0825
+    ],
+    "scaling_stds": [
+      32263.633676112357,
+      13.698779803459283,
+      4.130921658661659
+    ],
+    "random_seed": 42,
+    "n_clusters": 3,
+    "total_segmented_customers": 500000,
+    "scatter_sampling_method": "Stratified random sampling (random_state=42, max 1,500 per cluster)"
+  },
+  "prediction_provenance_status": "Provenance Unverified (Preserved; no training performed)",
+  "files_generated": [
+    "dashboard_summary_10M.json",
+    "customer_agg_10M.csv",
+    "prediction_sample_10M.csv",
+    "product_performance.json",
+    "manifest.json"
+  ]
+}

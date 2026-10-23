@@ -1,20 +1,31 @@
 // Production backend on Render
 const PRODUCTION_API_URL = 'https://ecommerce-dress-sales-api.onrender.com'
 
+// Detect if running in local browser environment (localhost / 127.0.0.1)
+const isLocalhost =
+  typeof window !== 'undefined' &&
+  Boolean(
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === '[::1]'
+  )
+
 // Configured origin resolution order:
-// 1. import.meta.env.VITE_API_BASE_URL (standard for Render / production deployments)
-// 2. import.meta.env.VITE_API_URL (backward compatibility)
-// 3. Fallback to Render URL in production builds (import.meta.env.PROD)
-// 4. Fallback to empty string in development (Vite proxies '/api' to localhost:8000)
-const envApiUrl =
-  import.meta.env.VITE_API_BASE_URL ||
-  import.meta.env.VITE_API_URL ||
-  (import.meta.env.PROD ? PRODUCTION_API_URL : '')
+// 1. In local browser (localhost/127.0.0.1), use relative path so Vite dev/preview proxy routes requests without CORS blocks
+// 2. import.meta.env.VITE_API_BASE_URL (standard for Render / production deployments)
+// 3. import.meta.env.VITE_API_URL (backward compatibility)
+// 4. Fallback to Render URL in production builds (import.meta.env.PROD)
+// 5. Fallback to empty string in development (Vite proxies '/api' to backend)
+const envApiUrl = isLocalhost
+  ? ''
+  : (import.meta.env.VITE_API_BASE_URL ||
+     import.meta.env.VITE_API_URL ||
+     (import.meta.env.PROD ? PRODUCTION_API_URL : ''))
 
 const configuredOrigin = (envApiUrl || '').trim().replace(/\/+$/, '')
 
 // If configuredOrigin ends with '/api', keep it; otherwise append '/api'
-// In local/Codespaces dev without env vars, API_BASE is simply '/api'
+// In local dev/preview without explicit origin, API_BASE is simply '/api'
 export const API_BASE = configuredOrigin
   ? configuredOrigin.endsWith('/api')
     ? configuredOrigin
@@ -143,6 +154,14 @@ export async function loadMethodologyData() {
 }
 
 /**
+ * 8. New Product Performance Page (Lazy loaded)
+ */
+export async function loadNewProductPerformance() {
+  const performance = await apiRequest('/products/new-performance')
+  return { performance }
+}
+
+/**
  * Full dashboard data loader (fallback using Promise.allSettled)
  */
 export async function loadDashboardData() {
@@ -175,4 +194,28 @@ export async function loadDashboardData() {
     models: val(8, { metrics: [], categories: [], brands: [], sizes: [] }),
     methodology: val(9, {}),
   }
+}
+
+
+/**
+ * 8. AI Help Chatbot API
+ */
+export async function sendChatMessage(message, language = 'en', history = [], image = null) {
+  const payload = {
+    message,
+    language,
+    history,
+  }
+  if (image && image.data && image.mime_type) {
+    payload.image = {
+      data: image.data,
+      mime_type: image.mime_type,
+    }
+  }
+
+  return apiRequest('/chat', {
+    method: 'POST',
+    timeout: 60000,
+    body: JSON.stringify(payload),
+  })
 }

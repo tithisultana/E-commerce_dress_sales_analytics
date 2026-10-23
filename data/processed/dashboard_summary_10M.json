@@ -1,589 +1,605 @@
 {
   "meta": {
-    "generated_at": "2026-10-13T01:21:31.901767",
-    "generated_in": "Google Colab",
-    "total_rows_processed": 10000000,
-    "script": "scripts/generate_10m_processed_data.py",
-    "raw_storage": "Google Drive — Ecommerce_Dress_Sales_10M/raw/",
-    "note": "Raw 10M CSV stored on Google Drive at Ecommerce_Dress_Sales_10M/raw/dress_sales_10M.csv.gz. This file is NOT in the GitHub repository. The web backend reads ONLY these processed summary files."
+    "generated_at": "2026-10-22T06:41:12.616063",
+    "pipeline": "scripts/process_10m_colab.py",
+    "test_mode": false,
+    "global_start_date": "2023-01-01",
+    "global_cutoff_date": "2026-05-31",
+    "period_months": 41,
+    "full_dataset_rows": 10000000,
+    "full_dataset_distinct_orders": 10000000,
+    "filtered_rows": 8541250,
+    "filtered_distinct_orders": 8541250,
+    "note": "Precomputed aggregates derived from transactional dataset. Web backend reads only these lightweight summary files."
   },
   "kpis": {
     "revenue": 62632086622.45,
     "orders": 10000000,
-    "customers": 500000,
     "units": 30000746,
+    "customers": 500000,
     "average_order_value": 6263.21,
-    "average_rating": 3.75
+    "average_rating": 3.75,
+    "filtered_revenue": 53493369922.3,
+    "filtered_orders": 8541250,
+    "filtered_units": 25621922,
+    "filtered_aov": 6262.94,
+    "period_months": 41,
+    "full_dataset_rows": 10000000,
+    "full_dataset_revenue": 62632086622.45,
+    "full_dataset_units": 30000746
   },
   "date_range": {
     "start": "2023-01-01",
-    "end": "2026-12-31"
+    "end": "2026-05-31",
+    "full_dataset_end": "2026-12-31",
+    "period_months": 41,
+    "is_filtered": true
   },
   "monthly": [
     {
       "Period": "2023-01",
-      "revenue": 1328461600.5,
       "orders": 212930,
-      "units": 637600
+      "units": 637600,
+      "revenue": 1328461600.5
     },
     {
       "Period": "2023-02",
-      "revenue": 1201735199.75,
       "orders": 191603,
-      "units": 575163
+      "units": 575163,
+      "revenue": 1201735199.75
     },
     {
       "Period": "2023-03",
-      "revenue": 1332158629.3,
       "orders": 212389,
-      "units": 636674
+      "units": 636674,
+      "revenue": 1332158629.3
     },
     {
       "Period": "2023-04",
-      "revenue": 1291875445.85,
       "orders": 205841,
-      "units": 617975
+      "units": 617975,
+      "revenue": 1291875445.85
     },
     {
       "Period": "2023-05",
-      "revenue": 1324566530.6,
       "orders": 211812,
-      "units": 635329
+      "units": 635329,
+      "revenue": 1324566530.6
     },
     {
       "Period": "2023-06",
-      "revenue": 1285348330.65,
       "orders": 205021,
-      "units": 615599
+      "units": 615599,
+      "revenue": 1285348330.65
     },
     {
       "Period": "2023-07",
-      "revenue": 1328770660.95,
       "orders": 212655,
-      "units": 637065
+      "units": 637065,
+      "revenue": 1328770660.95
     },
     {
       "Period": "2023-08",
-      "revenue": 1324387812.15,
       "orders": 211930,
-      "units": 635298
+      "units": 635298,
+      "revenue": 1324387812.15
     },
     {
       "Period": "2023-09",
-      "revenue": 1288087547.45,
       "orders": 205686,
-      "units": 617031
+      "units": 617031,
+      "revenue": 1288087547.45
     },
     {
       "Period": "2023-10",
-      "revenue": 1332930641.4,
       "orders": 212461,
-      "units": 636212
+      "units": 636212,
+      "revenue": 1332930641.4
     },
     {
       "Period": "2023-11",
-      "revenue": 1284055965.5,
       "orders": 205140,
-      "units": 614421
+      "units": 614421,
+      "revenue": 1284055965.5
     },
     {
       "Period": "2023-12",
-      "revenue": 1325137017.55,
       "orders": 212012,
-      "units": 635476
+      "units": 635476,
+      "revenue": 1325137017.55
     },
     {
       "Period": "2024-01",
-      "revenue": 1327537463.65,
       "orders": 212450,
-      "units": 636099
+      "units": 636099,
+      "revenue": 1327537463.65
     },
     {
       "Period": "2024-02",
-      "revenue": 1246899746.7,
       "orders": 198551,
-      "units": 595913
+      "units": 595913,
+      "revenue": 1246899746.7
     },
     {
       "Period": "2024-03",
-      "revenue": 1326799838.55,
       "orders": 212154,
-      "units": 635790
+      "units": 635790,
+      "revenue": 1326799838.55
     },
     {
       "Period": "2024-04",
-      "revenue": 1287483570.05,
       "orders": 205314,
-      "units": 616518
+      "units": 616518,
+      "revenue": 1287483570.05
     },
     {
       "Period": "2024-05",
-      "revenue": 1327194649.2,
       "orders": 212005,
-      "units": 636482
+      "units": 636482,
+      "revenue": 1327194649.2
     },
     {
       "Period": "2024-06",
-      "revenue": 1281205831.15,
       "orders": 205075,
-      "units": 615200
+      "units": 615200,
+      "revenue": 1281205831.15
     },
     {
       "Period": "2024-07",
-      "revenue": 1334021969.45,
       "orders": 213071,
-      "units": 639058
+      "units": 639058,
+      "revenue": 1334021969.45
     },
     {
       "Period": "2024-08",
-      "revenue": 1331961278.3,
       "orders": 212389,
-      "units": 637269
+      "units": 637269,
+      "revenue": 1331961278.3
     },
     {
       "Period": "2024-09",
-      "revenue": 1287769381.65,
       "orders": 205670,
-      "units": 617929
+      "units": 617929,
+      "revenue": 1287769381.65
     },
     {
       "Period": "2024-10",
-      "revenue": 1330100918.15,
       "orders": 212130,
-      "units": 636772
+      "units": 636772,
+      "revenue": 1330100918.15
     },
     {
       "Period": "2024-11",
-      "revenue": 1293163550.5,
       "orders": 206118,
-      "units": 617804
+      "units": 617804,
+      "revenue": 1293163550.5
     },
     {
       "Period": "2024-12",
-      "revenue": 1330376045.5,
       "orders": 212597,
-      "units": 637875
+      "units": 637875,
+      "revenue": 1330376045.5
     },
     {
       "Period": "2025-01",
-      "revenue": 1323771415.5,
       "orders": 211832,
-      "units": 634859
+      "units": 634859,
+      "revenue": 1323771415.5
     },
     {
       "Period": "2025-02",
-      "revenue": 1197145858.45,
       "orders": 191372,
-      "units": 574956
+      "units": 574956,
+      "revenue": 1197145858.45
     },
     {
       "Period": "2025-03",
-      "revenue": 1333673743.8,
       "orders": 212911,
-      "units": 639140
+      "units": 639140,
+      "revenue": 1333673743.8
     },
     {
       "Period": "2025-04",
-      "revenue": 1290769770.85,
       "orders": 206184,
-      "units": 617695
+      "units": 617695,
+      "revenue": 1290769770.85
     },
     {
       "Period": "2025-05",
-      "revenue": 1331447926.7,
       "orders": 212760,
-      "units": 637385
+      "units": 637385,
+      "revenue": 1331447926.7
     },
     {
       "Period": "2025-06",
-      "revenue": 1285751948.95,
       "orders": 205304,
-      "units": 616508
+      "units": 616508,
+      "revenue": 1285751948.95
     },
     {
       "Period": "2025-07",
-      "revenue": 1331082800.85,
       "orders": 212275,
-      "units": 636915
+      "units": 636915,
+      "revenue": 1331082800.85
     },
     {
       "Period": "2025-08",
-      "revenue": 1325478373.8,
       "orders": 212158,
-      "units": 636264
+      "units": 636264,
+      "revenue": 1325478373.8
     },
     {
       "Period": "2025-09",
-      "revenue": 1287158016.7,
       "orders": 205193,
-      "units": 616164
+      "units": 616164,
+      "revenue": 1287158016.7
     },
     {
       "Period": "2025-10",
-      "revenue": 1328957331.35,
       "orders": 212076,
-      "units": 635776
+      "units": 635776,
+      "revenue": 1328957331.35
     },
     {
       "Period": "2025-11",
-      "revenue": 1280467573.45,
       "orders": 204594,
-      "units": 613771
+      "units": 613771,
+      "revenue": 1280467573.45
     },
     {
       "Period": "2025-12",
-      "revenue": 1334686758.65,
       "orders": 212989,
-      "units": 638817
+      "units": 638817,
+      "revenue": 1334686758.65
     },
     {
       "Period": "2026-01",
-      "revenue": 1332160683.95,
       "orders": 212398,
-      "units": 637309
+      "units": 637309,
+      "revenue": 1332160683.95
     },
     {
       "Period": "2026-02",
-      "revenue": 1204913247.4,
       "orders": 191735,
-      "units": 576408
+      "units": 576408,
+      "revenue": 1204913247.4
     },
     {
       "Period": "2026-03",
-      "revenue": 1336960531.6,
       "orders": 213096,
-      "units": 640569
+      "units": 640569,
+      "revenue": 1336960531.6
     },
     {
       "Period": "2026-04",
-      "revenue": 1286504880.15,
       "orders": 205294,
-      "units": 615759
+      "units": 615759,
+      "revenue": 1286504880.15
     },
     {
       "Period": "2026-05",
-      "revenue": 1330409435.65,
       "orders": 212075,
-      "units": 637075
+      "units": 637075,
+      "revenue": 1330409435.65
     },
     {
       "Period": "2026-06",
-      "revenue": 1285092503.85,
       "orders": 205589,
-      "units": 616367
+      "units": 616367,
+      "revenue": 1285092503.85
     },
     {
       "Period": "2026-07",
-      "revenue": 1324439090.7,
       "orders": 211726,
-      "units": 635297
+      "units": 635297,
+      "revenue": 1324439090.7
     },
     {
       "Period": "2026-08",
-      "revenue": 1332918117.8,
       "orders": 212214,
-      "units": 637662
+      "units": 637662,
+      "revenue": 1332918117.8
     },
     {
       "Period": "2026-09",
-      "revenue": 1287558940.45,
       "orders": 205269,
-      "units": 617516
+      "units": 617516,
+      "revenue": 1287558940.45
     },
     {
       "Period": "2026-10",
-      "revenue": 1334714352.45,
       "orders": 212776,
-      "units": 638345
+      "units": 638345,
+      "revenue": 1334714352.45
     },
     {
       "Period": "2026-11",
-      "revenue": 1285074980.5,
       "orders": 205127,
-      "units": 615797
+      "units": 615797,
+      "revenue": 1285074980.5
     },
     {
       "Period": "2026-12",
-      "revenue": 1288918714.4,
       "orders": 206049,
-      "units": 617840
+      "units": 617840,
+      "revenue": 1288918714.4
     }
   ],
   "categories": [
     {
       "Category": "Saree",
-      "revenue": 10980533275.55,
-      "units": 2998416,
-      "orders": 999690,
+      "revenue": 9381498501.45,
+      "units": 2561555,
+      "orders": 854095,
       "average_rating": 3.75
     },
     {
       "Category": "Co-ord",
-      "revenue": 8918413078.2,
-      "units": 3000227,
-      "orders": 1000054,
+      "revenue": 7616518873.4,
+      "units": 2562596,
+      "orders": 854273,
       "average_rating": 3.75
     },
     {
       "Category": "Three Piece",
-      "revenue": 8472687863.35,
-      "units": 3000174,
-      "orders": 999558,
+      "revenue": 7234452536.25,
+      "units": 2561793,
+      "orders": 853483,
       "average_rating": 3.75
     },
     {
       "Category": "Dress",
-      "revenue": 8174121833.0,
-      "units": 3001723,
-      "orders": 1000240,
+      "revenue": 6985544428.65,
+      "units": 2564993,
+      "orders": 854797,
       "average_rating": 3.75
     },
     {
       "Category": "Panjabi",
-      "revenue": 7513458709.25,
-      "units": 3006523,
-      "orders": 1001691,
+      "revenue": 6414946508.8,
+      "units": 2566771,
+      "orders": 855364,
       "average_rating": 3.75
     },
     {
       "Category": "Shirt",
-      "revenue": 5928578351.25,
-      "units": 2997029,
-      "orders": 999091,
+      "revenue": 5062670173.0,
+      "units": 2559390,
+      "orders": 853297,
       "average_rating": 3.75
     },
     {
       "Category": "Bottomwear",
-      "revenue": 4641512921.35,
-      "units": 2999476,
-      "orders": 1000525,
+      "revenue": 3963183000.55,
+      "units": 2561429,
+      "orders": 854666,
       "average_rating": 3.75
     },
     {
       "Category": "Kurti",
-      "revenue": 3515158147.45,
-      "units": 2991838,
-      "orders": 997839,
+      "revenue": 3003124021.95,
+      "units": 2555862,
+      "orders": 852512,
       "average_rating": 3.75
     },
     {
       "Category": "T-Shirt",
-      "revenue": 2706855147.1,
-      "units": 2996660,
-      "orders": 999429,
+      "revenue": 2310958855.65,
+      "units": 2558273,
+      "orders": 853293,
       "average_rating": 3.75
     },
     {
       "Category": "Hijab",
-      "revenue": 1780767295.95,
-      "units": 3008680,
-      "orders": 1001883,
+      "revenue": 1520473022.6,
+      "units": 2569260,
+      "orders": 855470,
       "average_rating": 3.75
     }
   ],
   "payments": [
     {
       "Payment_Method": "Rocket",
-      "revenue": 12535402575.8,
-      "orders": 2001434,
-      "share": 20.01
-    },
-    {
-      "Payment_Method": "Cash on Delivery",
-      "revenue": 12529589599.75,
-      "orders": 1999130,
+      "revenue": 10705564540.35,
+      "orders": 1709381,
       "share": 20.01
     },
     {
       "Payment_Method": "Card",
-      "revenue": 12527332727.05,
-      "orders": 2000096,
-      "share": 20.0
+      "revenue": 10702031479.85,
+      "orders": 1708701,
+      "share": 20.01
+    },
+    {
+      "Payment_Method": "Cash on Delivery",
+      "revenue": 10701708674.6,
+      "orders": 1707428,
+      "share": 20.01
     },
     {
       "Payment_Method": "Bkash",
-      "revenue": 12526931132.35,
-      "orders": 2001074,
+      "revenue": 10699700727.4,
+      "orders": 1709218,
       "share": 20.0
     },
     {
       "Payment_Method": "Nagad",
-      "revenue": 12512830587.5,
-      "orders": 1998266,
-      "share": 19.98
+      "revenue": 10684364500.1,
+      "orders": 1706522,
+      "share": 19.97
     }
   ],
   "locations": [
     {
       "Location": "Rangpur",
-      "revenue": 6275530936.5,
-      "orders": 1001191,
-      "units": 3005168,
-      "customers": 432208
-    },
-    {
-      "Location": "Gazipur",
-      "revenue": 6267640775.45,
-      "orders": 999821,
-      "units": 3000027,
-      "customers": 432419
-    },
-    {
-      "Location": "Dhaka",
-      "revenue": 6266359229.3,
-      "orders": 1000606,
-      "units": 3003626,
-      "customers": 432209
-    },
-    {
-      "Location": "Barishal",
-      "revenue": 6264922445.9,
-      "orders": 999546,
-      "units": 3000476,
-      "customers": 432326
+      "revenue": 5361944921.75,
+      "orders": 855412,
+      "units": 2568202,
+      "customers": 409566
     },
     {
       "Location": "Mymensingh",
-      "revenue": 6263607688.55,
-      "orders": 1000469,
-      "units": 3000182,
-      "customers": 432623
+      "revenue": 5356789424.7,
+      "orders": 855342,
+      "units": 2564810,
+      "customers": 409879
+    },
+    {
+      "Location": "Gazipur",
+      "revenue": 5353449627.6,
+      "orders": 854301,
+      "units": 2562688,
+      "customers": 409520
+    },
+    {
+      "Location": "Dhaka",
+      "revenue": 5353345961.4,
+      "orders": 854627,
+      "units": 2565047,
+      "customers": 409230
     },
     {
       "Location": "Khulna",
-      "revenue": 6263303024.25,
-      "orders": 1000354,
-      "units": 2999272,
-      "customers": 432539
+      "revenue": 5350943924.8,
+      "orders": 854184,
+      "units": 2561976,
+      "customers": 409684
+    },
+    {
+      "Location": "Barishal",
+      "revenue": 5347307910.5,
+      "orders": 853432,
+      "units": 2561580,
+      "customers": 409341
     },
     {
       "Location": "Rajshahi",
-      "revenue": 6260816027.35,
-      "orders": 1000848,
-      "units": 3001490,
-      "customers": 432701
+      "revenue": 5346345330.75,
+      "orders": 854794,
+      "units": 2562855,
+      "customers": 409713
     },
     {
       "Location": "Sylhet",
-      "revenue": 6258612841.6,
-      "orders": 999737,
-      "units": 2998432,
-      "customers": 431796
+      "revenue": 5345542859.8,
+      "orders": 854106,
+      "units": 2560803,
+      "customers": 408896
     },
     {
       "Location": "Cumilla",
-      "revenue": 6256076997.75,
-      "orders": 998417,
-      "units": 2995340,
-      "customers": 431969
+      "revenue": 5339315024.1,
+      "orders": 852314,
+      "units": 2556430,
+      "customers": 408712
     },
     {
       "Location": "Chattogram",
-      "revenue": 6255216655.8,
-      "orders": 999011,
-      "units": 2996733,
-      "customers": 431977
+      "revenue": 5338384936.9,
+      "orders": 852738,
+      "units": 2557531,
+      "customers": 408992
     }
   ],
   "weekday": [
     {
       "weekday": "Monday",
-      "revenue": 8969368473.15,
-      "orders": 1432416
+      "revenue": 7638982595.3,
+      "orders": 1220284
     },
     {
       "weekday": "Tuesday",
-      "revenue": 8958383020.4,
-      "orders": 1431576
+      "revenue": 7628809040.55,
+      "orders": 1219583
     },
     {
       "weekday": "Wednesday",
-      "revenue": 8968347889.3,
-      "orders": 1430731
+      "revenue": 7643051489.7,
+      "orders": 1218961
     },
     {
       "weekday": "Thursday",
-      "revenue": 8934815314.3,
-      "orders": 1425598
+      "revenue": 7645650644.0,
+      "orders": 1219598
     },
     {
       "weekday": "Friday",
-      "revenue": 8920034317.45,
-      "orders": 1424750
+      "revenue": 7634845595.95,
+      "orders": 1219197
     },
     {
       "weekday": "Saturday",
-      "revenue": 8916009954.85,
-      "orders": 1423575
+      "revenue": 7626174834.1,
+      "orders": 1218080
     },
     {
       "weekday": "Sunday",
-      "revenue": 8965127653.0,
-      "orders": 1431354
+      "revenue": 7675855722.7,
+      "orders": 1225547
     }
   ],
   "materials": [
     {
       "Material": "Cotton",
-      "units": 14989565
+      "units": 12799914
     },
     {
       "Material": "Silk",
-      "units": 4005100
+      "units": 3422588
     },
     {
       "Material": "Linen",
-      "units": 3000432
+      "units": 2562866
     },
     {
       "Material": "Georgette",
-      "units": 2007291
+      "units": 1714062
     },
     {
       "Material": "Denim",
-      "units": 1999650
+      "units": 1708065
     },
     {
       "Material": "Polyester",
-      "units": 1002764
+      "units": 857382
     },
     {
       "Material": "Jamdani",
-      "units": 1000858
+      "units": 854083
     },
     {
       "Material": "Chiffon",
-      "units": 997603
+      "units": 852415
     },
     {
       "Material": "Lawn",
-      "units": 997483
+      "units": 850547
     }
   ],
   "sizes": [
     {
       "Size": "XS",
-      "units": 5007576
+      "units": 4276669
     },
     {
       "Size": "XXL",
-      "units": 5002805
-    },
-    {
-      "Size": "XL",
-      "units": 4999775
-    },
-    {
-      "Size": "L",
-      "units": 4998566
+      "units": 4273412
     },
     {
       "Size": "S",
-      "units": 4998508
+      "units": 4270775
+    },
+    {
+      "Size": "L",
+      "units": 4269555
+    },
+    {
+      "Size": "XL",
+      "units": 4269378
     },
     {
       "Size": "M",
-      "units": 4993516
+      "units": 4262133
     }
   ],
   "products_top30": [
@@ -592,59 +608,11 @@
       "Product_Name": "Basic Hijab",
       "Category": "Hijab",
       "Brand": "Aarong",
-      "units": 1005039,
-      "revenue": 594488347.55,
-      "orders": 334554,
-      "price": 674.9,
-      "discount": 12.33,
-      "rating": 3.75
-    },
-    {
-      "Product_ID": "P021",
-      "Product_Name": "Premium Panjabi",
-      "Category": "Panjabi",
-      "Brand": "Ecstasy",
-      "units": 1003411,
-      "revenue": 2507165513.2,
-      "orders": 334094,
-      "price": 2849.37,
-      "discount": 12.31,
-      "rating": 3.75
-    },
-    {
-      "Product_ID": "P014",
-      "Product_Name": "Embroidered Three-Piece",
-      "Category": "Three Piece",
-      "Brand": "Yellow",
-      "units": 1003205,
-      "revenue": 2834273944.55,
-      "orders": 333650,
-      "price": 3220.77,
-      "discount": 12.29,
-      "rating": 3.75
-    },
-    {
-      "Product_ID": "P026",
-      "Product_Name": "Straight Pant",
-      "Category": "Bottomwear",
-      "Brand": "Ecstasy",
-      "units": 1003158,
-      "revenue": 1553554028.65,
-      "orders": 334168,
-      "price": 1766.09,
-      "discount": 12.29,
-      "rating": 3.75
-    },
-    {
-      "Product_ID": "P020",
-      "Product_Name": "Embroidered Panjabi",
-      "Category": "Panjabi",
-      "Brand": "Deshi Loom",
-      "units": 1003066,
-      "revenue": 2508138294.15,
-      "orders": 334225,
-      "price": 2850.88,
-      "discount": 12.3,
+      "units": 858011,
+      "revenue": 507427550.25,
+      "orders": 285529,
+      "price": 674.86,
+      "discount": 12.34,
       "rating": 3.75
     },
     {
@@ -652,10 +620,10 @@
       "Product_Name": "Denim Shirt",
       "Category": "Shirt",
       "Brand": "Levis",
-      "units": 1003065,
-      "revenue": 1984115284.55,
-      "orders": 334320,
-      "price": 2255.87,
+      "units": 857632,
+      "revenue": 1696369556.8,
+      "orders": 285934,
+      "price": 2255.75,
       "discount": 12.3,
       "rating": 3.75
     },
@@ -664,11 +632,47 @@
       "Product_Name": "Floral Maxi Dress",
       "Category": "Dress",
       "Brand": "Yellow",
-      "units": 1002764,
-      "revenue": 2732927445.7,
-      "orders": 334095,
-      "price": 3106.29,
+      "units": 857382,
+      "revenue": 2336813208.3,
+      "orders": 285545,
+      "price": 3106.27,
       "discount": 12.28,
+      "rating": 3.75
+    },
+    {
+      "Product_ID": "P021",
+      "Product_Name": "Premium Panjabi",
+      "Category": "Panjabi",
+      "Brand": "Ecstasy",
+      "units": 857220,
+      "revenue": 2141834547.85,
+      "orders": 285515,
+      "price": 2849.93,
+      "discount": 12.31,
+      "rating": 3.75
+    },
+    {
+      "Product_ID": "P026",
+      "Product_Name": "Straight Pant",
+      "Category": "Bottomwear",
+      "Brand": "Ecstasy",
+      "units": 857075,
+      "revenue": 1327325332.2,
+      "orders": 285491,
+      "price": 1766.24,
+      "discount": 12.29,
+      "rating": 3.75
+    },
+    {
+      "Product_ID": "P014",
+      "Product_Name": "Embroidered Three-Piece",
+      "Category": "Three Piece",
+      "Brand": "Yellow",
+      "units": 856819,
+      "revenue": 2420680292.4,
+      "orders": 284899,
+      "price": 3220.46,
+      "discount": 12.29,
       "rating": 3.75
     },
     {
@@ -676,10 +680,10 @@
       "Product_Name": "Printed Hijab",
       "Category": "Hijab",
       "Brand": "Yellow",
-      "units": 1002252,
-      "revenue": 593592253.0,
-      "orders": 334094,
-      "price": 675.38,
+      "units": 856051,
+      "revenue": 506887848.5,
+      "orders": 285338,
+      "price": 675.22,
       "discount": 12.31,
       "rating": 3.75
     },
@@ -688,11 +692,35 @@
       "Product_Name": "Premium Co-ord Set",
       "Category": "Co-ord",
       "Brand": "Levis",
-      "units": 1001884,
-      "revenue": 2978499249.55,
-      "orders": 333796,
-      "price": 3389.17,
-      "discount": 12.29,
+      "units": 855799,
+      "revenue": 2543745400.6,
+      "orders": 285079,
+      "price": 3389.19,
+      "discount": 12.3,
+      "rating": 3.75
+    },
+    {
+      "Product_ID": "P020",
+      "Product_Name": "Embroidered Panjabi",
+      "Category": "Panjabi",
+      "Brand": "Deshi Loom",
+      "units": 855242,
+      "revenue": 2139107313.25,
+      "orders": 285045,
+      "price": 2851.24,
+      "discount": 12.28,
+      "rating": 3.75
+    },
+    {
+      "Product_ID": "P030",
+      "Product_Name": "Festive Co-ord Set",
+      "Category": "Co-ord",
+      "Brand": "Aarong",
+      "units": 855222,
+      "revenue": 2542290620.45,
+      "orders": 285013,
+      "price": 3389.33,
+      "discount": 12.31,
       "rating": 3.75
     },
     {
@@ -700,10 +728,10 @@
       "Product_Name": "Premium Silk Hijab",
       "Category": "Hijab",
       "Brand": "Deshi Loom",
-      "units": 1001389,
-      "revenue": 592686695.4,
-      "orders": 333235,
-      "price": 674.8,
+      "units": 855198,
+      "revenue": 506157623.85,
+      "orders": 284603,
+      "price": 674.75,
       "discount": 12.3,
       "rating": 3.75
     },
@@ -712,83 +740,11 @@
       "Product_Name": "Casual Midi Dress",
       "Category": "Dress",
       "Brand": "Levis",
-      "units": 1001356,
-      "revenue": 2725206580.3,
-      "orders": 333679,
-      "price": 3104.48,
-      "discount": 12.32,
-      "rating": 3.75
-    },
-    {
-      "Product_ID": "P030",
-      "Product_Name": "Festive Co-ord Set",
-      "Category": "Co-ord",
-      "Brand": "Aarong",
-      "units": 1000921,
-      "revenue": 2975358615.05,
-      "orders": 333654,
-      "price": 3389.32,
-      "discount": 12.3,
-      "rating": 3.75
-    },
-    {
-      "Product_ID": "P006",
-      "Product_Name": "Jamdani Saree",
-      "Category": "Saree",
-      "Brand": "Deshi Loom",
-      "units": 1000858,
-      "revenue": 3664857624.1,
-      "orders": 333638,
-      "price": 4175.51,
-      "discount": 12.32,
-      "rating": 3.75
-    },
-    {
-      "Product_ID": "P019",
-      "Product_Name": "Men's Panjabi",
-      "Category": "Panjabi",
-      "Brand": "Aarong",
-      "units": 1000046,
-      "revenue": 2498154901.9,
-      "orders": 333372,
-      "price": 2849.16,
+      "units": 855196,
+      "revenue": 2327686570.0,
+      "orders": 285095,
+      "price": 3104.7,
       "discount": 12.31,
-      "rating": 3.75
-    },
-    {
-      "Product_ID": "P024",
-      "Product_Name": "Premium Polo",
-      "Category": "T-Shirt",
-      "Brand": "Sailor",
-      "units": 999946,
-      "revenue": 903504592.1,
-      "orders": 333603,
-      "price": 1030.16,
-      "discount": 12.29,
-      "rating": 3.75
-    },
-    {
-      "Product_ID": "P025",
-      "Product_Name": "Wide Leg Palazzo",
-      "Category": "Bottomwear",
-      "Brand": "Yellow",
-      "units": 999733,
-      "revenue": 1546612646.0,
-      "orders": 333575,
-      "price": 1764.22,
-      "discount": 12.3,
-      "rating": 3.75
-    },
-    {
-      "Product_ID": "P013",
-      "Product_Name": "Three-Piece Printed Set",
-      "Category": "Three Piece",
-      "Brand": "Aarong",
-      "units": 999486,
-      "revenue": 2822372733.6,
-      "orders": 333164,
-      "price": 3219.1,
-      "discount": 12.3,
       "rating": 3.75
     },
     {
@@ -796,23 +752,71 @@
       "Product_Name": "Silk Saree",
       "Category": "Saree",
       "Brand": "Aarong",
-      "units": 999379,
-      "revenue": 3662698428.15,
-      "orders": 332946,
-      "price": 4176.8,
+      "units": 854948,
+      "revenue": 3133887946.25,
+      "orders": 284735,
+      "price": 4176.58,
+      "discount": 12.28,
+      "rating": 3.75
+    },
+    {
+      "Product_ID": "P013",
+      "Product_Name": "Three-Piece Printed Set",
+      "Category": "Three Piece",
+      "Brand": "Aarong",
+      "units": 854427,
+      "revenue": 2412779671.05,
+      "orders": 284737,
+      "price": 3218.98,
       "discount": 12.29,
       "rating": 3.75
     },
     {
-      "Product_ID": "P022",
-      "Product_Name": "Women's T-Shirt",
-      "Category": "T-Shirt",
+      "Product_ID": "P019",
+      "Product_Name": "Men's Panjabi",
+      "Category": "Panjabi",
+      "Brand": "Aarong",
+      "units": 854309,
+      "revenue": 2134004647.7,
+      "orders": 284804,
+      "price": 2849.4,
+      "discount": 12.31,
+      "rating": 3.75
+    },
+    {
+      "Product_ID": "P006",
+      "Product_Name": "Jamdani Saree",
+      "Category": "Saree",
+      "Brand": "Deshi Loom",
+      "units": 854083,
+      "revenue": 3127249481.7,
+      "orders": 284818,
+      "price": 4174.86,
+      "discount": 12.32,
+      "rating": 3.75
+    },
+    {
+      "Product_ID": "P025",
+      "Product_Name": "Wide Leg Palazzo",
+      "Category": "Bottomwear",
       "Brand": "Yellow",
-      "units": 998917,
-      "revenue": 902474159.4,
-      "orders": 333146,
-      "price": 1029.95,
+      "units": 853921,
+      "revenue": 1320596064.3,
+      "orders": 285027,
+      "price": 1763.77,
       "discount": 12.3,
+      "rating": 3.75
+    },
+    {
+      "Product_ID": "P024",
+      "Product_Name": "Premium Polo",
+      "Category": "T-Shirt",
+      "Brand": "Sailor",
+      "units": 853534,
+      "revenue": 771208963.75,
+      "orders": 284821,
+      "price": 1030.2,
+      "discount": 12.29,
       "rating": 3.75
     },
     {
@@ -820,10 +824,22 @@
       "Product_Name": "Linen Casual Shirt",
       "Category": "Shirt",
       "Brand": "Ecstasy",
-      "units": 998815,
-      "revenue": 1976604703.2,
-      "orders": 332950,
-      "price": 2255.89,
+      "units": 853146,
+      "revenue": 1687962080.9,
+      "orders": 284364,
+      "price": 2255.73,
+      "discount": 12.31,
+      "rating": 3.75
+    },
+    {
+      "Product_ID": "P022",
+      "Product_Name": "Women's T-Shirt",
+      "Category": "T-Shirt",
+      "Brand": "Yellow",
+      "units": 852849,
+      "revenue": 770591884.7,
+      "orders": 284525,
+      "price": 1030.04,
       "discount": 12.3,
       "rating": 3.75
     },
@@ -832,10 +848,10 @@
       "Product_Name": "Premium Cotton Kurti",
       "Category": "Kurti",
       "Brand": "Aarong",
-      "units": 998793,
-      "revenue": 1173807676.35,
-      "orders": 332917,
-      "price": 1339.96,
+      "units": 852794,
+      "revenue": 1002343499.3,
+      "orders": 284297,
+      "price": 1340.04,
       "discount": 12.29,
       "rating": 3.75
     },
@@ -844,35 +860,11 @@
       "Product_Name": "Printed Saree",
       "Category": "Saree",
       "Brand": "Yellow",
-      "units": 998179,
-      "revenue": 3652977223.3,
-      "orders": 333106,
-      "price": 4173.88,
-      "discount": 12.3,
-      "rating": 3.75
-    },
-    {
-      "Product_ID": "P023",
-      "Product_Name": "Oversized T-Shirt",
-      "Category": "T-Shirt",
-      "Brand": "Levis",
-      "units": 997797,
-      "revenue": 900876395.6,
-      "orders": 332680,
-      "price": 1029.66,
+      "units": 852524,
+      "revenue": 3120361073.5,
+      "orders": 284542,
+      "price": 4173.95,
       "discount": 12.31,
-      "rating": 3.75
-    },
-    {
-      "Product_ID": "P002",
-      "Product_Name": "Printed Cotton Kurti",
-      "Category": "Kurti",
-      "Brand": "Yellow",
-      "units": 997757,
-      "revenue": 1172350841.3,
-      "orders": 332423,
-      "price": 1339.71,
-      "discount": 12.3,
       "rating": 3.75
     },
     {
@@ -880,10 +872,58 @@
       "Product_Name": "Party Evening Dress",
       "Category": "Dress",
       "Brand": "Ecstasy",
-      "units": 997603,
-      "revenue": 2715987807.0,
-      "orders": 332466,
-      "price": 3105.37,
+      "units": 852415,
+      "revenue": 2321044650.35,
+      "orders": 284157,
+      "price": 3106.09,
+      "discount": 12.29,
+      "rating": 3.75
+    },
+    {
+      "Product_ID": "P002",
+      "Product_Name": "Printed Cotton Kurti",
+      "Category": "Kurti",
+      "Brand": "Yellow",
+      "units": 851953,
+      "revenue": 1001216678.95,
+      "orders": 283911,
+      "price": 1339.76,
+      "discount": 12.29,
+      "rating": 3.75
+    },
+    {
+      "Product_ID": "P023",
+      "Product_Name": "Oversized T-Shirt",
+      "Category": "T-Shirt",
+      "Brand": "Levis",
+      "units": 851890,
+      "revenue": 769158007.2,
+      "orders": 283947,
+      "price": 1029.89,
+      "discount": 12.32,
+      "rating": 3.75
+    },
+    {
+      "Product_ID": "P028",
+      "Product_Name": "Casual Co-ord Set",
+      "Category": "Co-ord",
+      "Brand": "Ecstasy",
+      "units": 851575,
+      "revenue": 2530482852.35,
+      "orders": 284181,
+      "price": 3388.84,
+      "discount": 12.29,
+      "rating": 3.75
+    },
+    {
+      "Product_ID": "P003",
+      "Product_Name": "Embroidered Kurti",
+      "Category": "Kurti",
+      "Brand": "Sailor",
+      "units": 851115,
+      "revenue": 999563843.7,
+      "orders": 284304,
+      "price": 1339.07,
       "discount": 12.29,
       "rating": 3.75
     },
@@ -892,23 +932,11 @@
       "Product_Name": "Premium Lawn Three-Piece",
       "Category": "Three Piece",
       "Brand": "Deshi Loom",
-      "units": 997483,
-      "revenue": 2816041185.2,
-      "orders": 332744,
-      "price": 3219.8,
+      "units": 850547,
+      "revenue": 2400992572.8,
+      "orders": 283847,
+      "price": 3219.74,
       "discount": 12.31,
-      "rating": 3.75
-    },
-    {
-      "Product_ID": "P028",
-      "Product_Name": "Casual Co-ord Set",
-      "Category": "Co-ord",
-      "Brand": "Ecstasy",
-      "units": 997422,
-      "revenue": 2964555213.6,
-      "orders": 332604,
-      "price": 3389.17,
-      "discount": 12.29,
       "rating": 3.75
     },
     {
@@ -916,23 +944,11 @@
       "Product_Name": "Denim Jeans",
       "Category": "Bottomwear",
       "Brand": "Levis",
-      "units": 996585,
-      "revenue": 1541346246.7,
-      "orders": 332782,
-      "price": 1764.02,
-      "discount": 12.32,
-      "rating": 3.75
-    },
-    {
-      "Product_ID": "P003",
-      "Product_Name": "Embroidered Kurti",
-      "Category": "Kurti",
-      "Brand": "Sailor",
-      "units": 995288,
-      "revenue": 1168999629.8,
-      "orders": 332499,
-      "price": 1339.12,
-      "discount": 12.29,
+      "units": 850433,
+      "revenue": 1315261604.05,
+      "orders": 284148,
+      "price": 1763.97,
+      "discount": 12.31,
       "rating": 3.75
     },
     {
@@ -940,10 +956,10 @@
       "Product_Name": "Formal Oxford Shirt",
       "Category": "Shirt",
       "Brand": "Sailor",
-      "units": 995149,
-      "revenue": 1967858363.5,
-      "orders": 331821,
-      "price": 2255.12,
+      "units": 848612,
+      "revenue": 1678338535.3,
+      "orders": 282999,
+      "price": 2255.28,
       "discount": 12.3,
       "rating": 3.75
     }
@@ -951,47 +967,50 @@
   "cluster_summary": [
     {
       "cluster": 0,
-      "customers": 193247,
-      "spend": 93395.95,
-      "items": 45.87,
-      "orders": 15.85
+      "customers": 222994,
+      "spend": 113020.45,
+      "items": 54.05,
+      "orders": 17.96
     },
     {
       "cluster": 1,
-      "customers": 222216,
-      "spend": 133411.2,
-      "items": 63.74,
-      "orders": 21.15
+      "customers": 184663,
+      "spend": 76725.22,
+      "items": 37.82,
+      "orders": 13.13
     },
     {
       "cluster": 2,
-      "customers": 84537,
-      "spend": 176697.73,
-      "items": 82.48,
-      "orders": 26.48
+      "customers": 92343,
+      "spend": 152931.75,
+      "items": 71.32,
+      "orders": 22.88
     }
   ],
   "customer_stats": {
     "customer_count": 500000,
     "repeat_customers": 500000,
-    "average_customer_value": 125264.17,
-    "average_orders_per_customer": 20.0
+    "average_customer_value": 106986.74,
+    "average_orders_per_customer": 17.08
   },
   "methodology": {
     "rows": 10000000,
+    "filtered_rows": 8541250,
     "columns": 18,
     "date_start": "2023-01-01",
-    "date_end": "2026-12-31",
+    "date_end": "2026-05-31",
+    "full_dataset_date_end": "2026-12-31",
+    "period_months": 41,
     "missing_values": 0,
     "duplicate_rows_removed": 0,
     "revenue_definition": "Price × Quantity × (1 − Discount / 100)",
-    "segmentation": "MiniBatchKMeans (k=3, seed=42) on standardised customer net spend, item count, and order count — consistent with Notebook 3 parameters.",
-    "prediction": "Quantity prediction; 80/20 random split (seed 42), median numeric imputation, most-frequent categorical imputation, one-hot encoded categories (handle_unknown='ignore'), Linear Regression baseline and Random Forest (200 trees)."
+    "segmentation": "MiniBatchKMeans (k=3, seed=42) on standardized customer net spend, item count, and distinct order count derived strictly from the active cutoff scope (2023-01-01 to 2026-05-31).",
+    "prediction": "Quantity prediction. Provenance Unverified: Precomputed model weights and metrics in prediction.py are served statically without runtime training. This offline data processing pipeline aggregates transaction history and fits customer segmentation, but does NOT train or evaluate demand forecasting models."
   },
   "model_metrics": {
-    "note": "ML model metrics are pre-computed offline and stored here. The web backend reads these values — it does not retrain at runtime.",
-    "training_rows": 8000000,
-    "testing_rows": 2000000,
+    "status": "not_trained_by_pipeline",
+    "note": "Prediction model training was not performed by this offline pipeline. Demand forecasting models in prediction.py remain statically precomputed baseline constants.",
+    "model_provenance_note": "Provenance Unverified: Scoring weights and evaluation metrics are precomputed baseline constants without runtime training. No verifiable training script exists in the repository for the ML model fitting.",
     "categories": [
       "Bottomwear",
       "Co-ord",
@@ -1019,23 +1038,6 @@
       "XL",
       "XS",
       "XXL"
-    ],
-    "metrics": [
-      {
-        "model": "Linear Regression",
-        "mae": null,
-        "rmse": null,
-        "r2": null
-      },
-      {
-        "model": "Random Forest",
-        "mae": null,
-        "rmse": null,
-        "r2": null
-      }
-    ],
-    "selected_model": null,
-    "selection_method": "Website extension — not part of Notebook 2. Lowest combined rank across MAE, RMSE, and R².",
-    "feature_importance": []
+    ]
   }
 }

@@ -30,8 +30,18 @@ from .data import (
     get_customer_agg_10m,
     get_dataset,
     get_prediction_sample_10m,
+    get_product_performance,
     get_summary_10m,
 )
+
+# ---------------------------------------------------------------------------
+# Global Analysis Date Scope (2023-01-01 to 2026-05-31: exactly 41 months)
+# Note: Spans 3 years and 5 months; never refer to as "exactly 3 years".
+# ---------------------------------------------------------------------------
+ANALYSIS_START_DATE    = "2023-01-01"
+ANALYSIS_CUTOFF_DATE   = "2026-05-31"
+ANALYSIS_CUTOFF_PERIOD = "2026-05"
+ANALYSIS_PERIOD_MONTHS = 41
 
 
 def records(frame: pd.DataFrame) -> list[dict]:
@@ -47,47 +57,86 @@ def records(frame: pd.DataFrame) -> list[dict]:
 def overview_data() -> dict:
     """Return KPIs, date range, monthly revenue, and category revenue.
 
-    10M path: reads pre-computed values directly from dashboard_summary_10M.json.
-    Fallback:  computes from the 10k CSV via groupby aggregations.
+    10M path: reads monthly time series from dashboard_summary_10M.json,
+    slicing strictly to 2023-01-01 through 2026-05-31 (41 months).
+    Calculates exact revenue (৳53.49B), orders (8,541,250), units (25,621,922),
+    and AOV (৳6,262.94) for the active analysis scope, while transparently labeling
+    full dataset volume (10M transactions / ৳62.63B).
+    Fallback: computes from the 10k CSV filtered to the cutoff date.
     """
     if USE_10M_DATA:
-        # -----------------------------------------------------------------
-        # Tier 1 — serve pre-computed 10M summary (milliseconds)
-        # Raw 10M CSV is on Google Drive, not loaded here.
-        # -----------------------------------------------------------------
         s = get_summary_10m()
+        monthly_filtered = [m for m in s["monthly"] if m["Period"] <= ANALYSIS_CUTOFF_PERIOD]
+        filtered_revenue = round(sum(m["revenue"] for m in monthly_filtered), 2)
+        filtered_orders  = sum(m["orders"] for m in monthly_filtered)
+        filtered_units   = sum(m["units"] for m in monthly_filtered)
+        filtered_aov     = round(filtered_revenue / filtered_orders, 2) if filtered_orders else 0
+
         return {
-            "kpis":             s["kpis"],
-            "date_range":       s["date_range"],
-            "monthly_revenue":  s["monthly"],
+            "kpis": {
+                "revenue":             filtered_revenue,
+                "orders":              filtered_orders,
+                "customers":           s["kpis"].get("customers", 500000),
+                "units":               filtered_units,
+                "average_order_value": filtered_aov,
+                "average_rating":      s["kpis"].get("average_rating", 3.75),
+                "full_dataset_rows":   s["kpis"].get("orders", 10000000),
+                "full_dataset_revenue": float(s["kpis"].get("revenue", 62632086622.45)),
+                "full_dataset_units":  s["kpis"].get("units", 30000746),
+                "filtered_orders":     filtered_orders,
+                "period_months":       ANALYSIS_PERIOD_MONTHS,
+            },
+            "date_range": {
+                "start":            ANALYSIS_START_DATE,
+                "end":              ANALYSIS_CUTOFF_DATE,
+                "period_months":    ANALYSIS_PERIOD_MONTHS,
+                "full_dataset_end": s["date_range"].get("end", "2026-12-31"),
+                "is_filtered":      True,
+            },
+            "scope_notes": {
+                "overview_and_monthly": "Filtered to 41 months (2023-01-01 to 2026-05-31). Exact mathematical sum of the 41 monthly precomputed buckets (8,541,250 orders · ৳53,493,369,922.30).",
+                "categories_and_products": "Filtered to 41 months (2023-01-01 to 2026-05-31). Category and product aggregates match the active cutoff total (25,621,922 units · ৳53,493,369,922.30).",
+                "customers_and_segments": "Filtered to 41 months (2023-01-01 to 2026-05-31). Aggregated across 500,000 unique customers and 8,541,250 orders within the cutoff period.",
+            },
+            "monthly_revenue":  monthly_filtered,
             "category_revenue": s["categories"],
             "payments":         s.get("payments", []),
             "locations":        s.get("locations", []),
         }
 
     # -----------------------------------------------------------------
-    # Tier 2 — compute from original 10k CSV
+    # Tier 2 — compute from original 10k CSV filtered to cutoff
     # -----------------------------------------------------------------
     frame = get_dataset()
-    orders = int(frame["Order_ID"].nunique())
-    categories = category_sales_data()
+    frame_cut = frame[(frame["Date"] >= ANALYSIS_START_DATE) & (frame["Date"] <= ANALYSIS_CUTOFF_DATE)].copy()
+    orders = int(frame_cut["Order_ID"].nunique())
+    rev = round(float(frame_cut["Net_Sales"].sum()), 2)
+    units = int(frame_cut["Quantity"].sum())
+    cust = int(frame_cut["Customer_ID"].nunique())
+    aov = round(rev / orders, 2) if orders else 0
+    rating = round(float(frame_cut["Rating"].mean()), 2) if orders else 0
+
     return {
         "kpis": {
-            "revenue": round(float(frame["Net_Sales"].sum()), 2),
-            "orders": orders,
-            "customers": int(frame["Customer_ID"].nunique()),
-            "units": int(frame["Quantity"].sum()),
-            "average_order_value": (
-                round(float(frame["Net_Sales"].sum() / orders), 2) if orders else 0
-            ),
-            "average_rating": round(float(frame["Rating"].mean()), 2),
+            "revenue":             rev,
+            "orders":              orders,
+            "customers":           cust,
+            "units":               units,
+            "average_order_value": aov,
+            "average_rating":      rating,
+            "full_dataset_rows":   len(frame),
+            "filtered_orders":     orders,
+            "period_months":       ANALYSIS_PERIOD_MONTHS,
         },
         "date_range": {
-            "start": frame["Date"].min().strftime("%Y-%m-%d"),
-            "end":   frame["Date"].max().strftime("%Y-%m-%d"),
+            "start":            ANALYSIS_START_DATE,
+            "end":              ANALYSIS_CUTOFF_DATE,
+            "period_months":    ANALYSIS_PERIOD_MONTHS,
+            "full_dataset_end": frame["Date"].max().strftime("%Y-%m-%d"),
+            "is_filtered":      True,
         },
         "monthly_revenue":  monthly_sales_data()["monthly"],
-        "category_revenue": categories,
+        "category_revenue": category_sales_data(),
         "payments":         payment_distribution_data(),
         "locations":        location_sales_data(),
     }
@@ -100,24 +149,31 @@ def overview_data() -> dict:
 def monthly_sales_data() -> dict:
     """Return monthly revenue/orders/units and weekday breakdown.
 
-    10M path: reads pre-computed monthly and weekday arrays from JSON summary.
-    Fallback:  groups the 10k CSV by Period and day name.
+    10M path: reads monthly array sliced to 2023-01 through 2026-05 (41 months).
+    Fallback:  groups the 10k CSV filtered to the cutoff.
     """
     if USE_10M_DATA:
         s = get_summary_10m()
+        monthly_filtered = [m for m in s["monthly"] if m["Period"] <= ANALYSIS_CUTOFF_PERIOD]
         return {
-            "monthly": s["monthly"],
+            "monthly": monthly_filtered,
             "weekday": s["weekday"],
+            "date_range": {
+                "start":         ANALYSIS_START_DATE,
+                "end":           ANALYSIS_CUTOFF_DATE,
+                "period_months": ANALYSIS_PERIOD_MONTHS,
+            },
         }
 
     frame = get_dataset()
-    monthly = frame.groupby("Period", as_index=False).agg(
+    frame_cut = frame[(frame["Date"] >= ANALYSIS_START_DATE) & (frame["Date"] <= ANALYSIS_CUTOFF_DATE)].copy()
+    monthly = frame_cut.groupby("Period", as_index=False).agg(
         revenue=("Net_Sales", "sum"),
         orders=("Order_ID", "nunique"),
         units=("Quantity", "sum"),
     )
     weekdays = (
-        frame.assign(weekday=frame["Date"].dt.day_name())
+        frame_cut.assign(weekday=frame_cut["Date"].dt.day_name())
         .groupby("weekday", as_index=False)
         .agg(revenue=("Net_Sales", "sum"), orders=("Order_ID", "nunique"))
     )
@@ -131,6 +187,11 @@ def monthly_sales_data() -> dict:
     return {
         "monthly": records(monthly),
         "weekday": records(weekdays.sort_values("weekday")),
+        "date_range": {
+            "start":         ANALYSIS_START_DATE,
+            "end":           ANALYSIS_CUTOFF_DATE,
+            "period_months": ANALYSIS_PERIOD_MONTHS,
+        },
     }
 
 
@@ -425,22 +486,35 @@ def methodology_data() -> dict:
         return {
             "rows":                   int(m["rows"]),
             "columns":                int(m.get("columns", len(REQUIRED_COLUMNS))),
-            "date_start":             m["date_start"],
-            "date_end":               m["date_end"],
+            "date_start":             ANALYSIS_START_DATE,
+            "date_end":               ANALYSIS_CUTOFF_DATE,
+            "full_dataset_date_end":  m.get("date_end", "2026-12-31"),
+            "period_months":          ANALYSIS_PERIOD_MONTHS,
+            "filtered_orders":        8541250,
             "missing_values":         int(m.get("missing_values", 0)),
             "duplicate_rows_removed": int(m.get("duplicate_rows_removed", 0)),
             "revenue_definition":     m["revenue_definition"],
             "segmentation":           m["segmentation"],
-            "prediction":             m["prediction"],
+            "prediction": (
+                "Quantity prediction (Linear Regression baseline and Random Forest). "
+                "Provenance Unverified: Model weights and evaluation metrics (MAE: 0.828, RMSE: 1.043, R²: 0.074) "
+                "are statically precomputed in prediction.py for instant serving without runtime training. "
+                "There is no verifiable training pipeline script or metadata artifact in the repository "
+                "documenting the exact training dataset size or date range. Dataset scale and date scope provenance remain unverified."
+            ),
         }
 
     frame  = get_dataset()
     source = pd.read_csv(DATA_PATH)
+    frame_cut = frame[(frame["Date"] >= ANALYSIS_START_DATE) & (frame["Date"] <= ANALYSIS_CUTOFF_DATE)]
     return {
         "rows":                   int(len(frame)),
         "columns":                int(len(REQUIRED_COLUMNS)),
-        "date_start":             frame["Date"].min().strftime("%Y-%m-%d"),
-        "date_end":               frame["Date"].max().strftime("%Y-%m-%d"),
+        "date_start":             ANALYSIS_START_DATE,
+        "date_end":               ANALYSIS_CUTOFF_DATE,
+        "full_dataset_date_end":  frame["Date"].max().strftime("%Y-%m-%d"),
+        "period_months":          ANALYSIS_PERIOD_MONTHS,
+        "filtered_orders":        int(len(frame_cut)),
         "missing_values":         int(frame[list(REQUIRED_COLUMNS)].isna().sum().sum()),
         "duplicate_rows_removed": int(source.duplicated().sum()),
         "revenue_definition":     "Net Sales = Price x Quantity x (1 - Discount / 100)",
@@ -450,8 +524,21 @@ def methodology_data() -> dict:
             "following the respective notebooks."
         ),
         "prediction": (
-            "Quantity prediction; 80/20 random split (seed 42), "
-            "median/mode imputation, one-hot encoded categories, "
-            "Linear Regression baseline and Random Forest (200 trees)."
+            "Quantity prediction. Provenance Unverified: Static baseline weights and evaluation metrics "
+            "are served without runtime training; no verifiable offline training metadata artifact exists in the repo."
         ),
     }
+
+
+# ===========================================================================
+# New Product Performance
+# ===========================================================================
+
+def new_product_performance_data() -> dict:
+    """Return precomputed product adoption, response, and schema audit metrics.
+
+    Includes product selector items, distinct customer counts, orders, units,
+    revenue, repeat buyers (>=2 distinct orders of this product), monthly adoption
+    curves from first recorded sale to 2026-05-31 cutoff, and category benchmarks.
+    """
+    return get_product_performance()

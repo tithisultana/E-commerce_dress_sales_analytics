@@ -41,6 +41,7 @@ PROCESSED_DIR         = PROJECT_ROOT / "data" / "processed"
 SUMMARY_10M_PATH      = PROCESSED_DIR / "dashboard_summary_10M.json"
 CUSTOMER_AGG_10M_PATH = PROCESSED_DIR / "customer_agg_10M.csv"
 PRED_SAMPLE_10M_PATH  = PROCESSED_DIR / "prediction_sample_10M.csv"
+PRODUCT_PERF_PATH     = PROCESSED_DIR / "product_performance.json"
 
 # Columns required in the original CSV
 REQUIRED_COLUMNS = {
@@ -138,6 +139,23 @@ def get_prediction_sample_10m() -> pd.DataFrame:
         return df
     except (OSError, pd.errors.ParserError) as exc:
         raise DatasetError(f"Could not read prediction sample: {exc}") from exc
+
+
+@lru_cache(maxsize=1)
+def get_product_performance() -> dict:
+    """Load and cache precomputed product performance adoption metrics.
+
+    Contains distinct purchasing customer counts, orders, units, net revenue,
+    repeat customers (>=2 distinct orders of the product), monthly cohort adoption
+    trends from first recorded sale up to global cutoff 2026-05-31, and category benchmarks.
+    No raw customer identifiers are contained in this payload.
+    """
+    if not PRODUCT_PERF_PATH.is_file():
+        raise DatasetError(f"Product performance summary not found: {PRODUCT_PERF_PATH}")
+    try:
+        return json.loads(PRODUCT_PERF_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise DatasetError(f"Could not read product performance summary: {exc}") from exc
 
 
 # ===========================================================================
