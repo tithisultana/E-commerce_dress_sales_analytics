@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
 
 from . import analytics
+from .chat import ChatRequest, ChatResponse, generate_chat_reply
 from .data import get_dataset
 from .prediction import PredictionInput, model_evaluation_data, predict_quantity
 
@@ -55,6 +56,12 @@ def top_products(limit: int = Query(default=10, ge=1, le=100)) -> dict:
     return analytics.top_products_data(limit)
 
 
+@router.get("/products/new-performance")
+@router.get("/new-products/performance")
+def new_product_performance() -> dict:
+    return analytics.new_product_performance_data()
+
+
 @router.get("/customers")
 @router.get("/customers/analysis")
 def customers(limit: int = Query(default=200, ge=1, le=1000)) -> dict:
@@ -85,3 +92,8 @@ def about() -> dict:
     from .analytics import methodology_data
 
     return methodology_data()
+
+
+@router.post("/chat", response_model=ChatResponse)
+async def chat(request: ChatRequest) -> ChatResponse:
+    return await generate_chat_reply(request)

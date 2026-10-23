@@ -6,6 +6,11 @@ frontend/node_modules/
 frontend/dist/
 .DS_Store
 
+# Environment and secrets
+.env
+*.env
+!.env.example
+
 # ---------------------------------------------------------------------------
 # 10M Data Architecture — raw and large data files
 # These are processed offline and must never be committed to git.
@@ -33,3 +38,6 @@ large_data/
 # Serialized ML model artifacts (can be large — regenerate from script)
 *.pkl
 *.joblib
+# Local backups and deployment staging
+data_backup_local/
+Project_Deployment/

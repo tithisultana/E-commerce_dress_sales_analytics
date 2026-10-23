@@ -208,6 +208,13 @@ def model_evaluation_data() -> dict:
         "feature_importance": FEATURE_IMPORTANCE,
         "training_rows":      training_rows,
         "testing_rows":       testing_rows,
+        "model_provenance_note": (
+            "Provenance Unverified: Scoring weights and evaluation metrics are pre-computed "
+            "and served statically without runtime training. No verifiable offline training script "
+            "or metadata artifact exists in the repository to confirm whether fitting was conducted "
+            "on the full 10M dataset, the 10k base sample, or a specific date range. "
+            "Training scale and date range provenance remain unverified."
+        ),
     }
 
 
