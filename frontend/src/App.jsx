@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  Activity, AlertCircle, ArrowDownWideNarrow, ArrowUpRight, BarChart3, Bot, Boxes, CircleHelp,
+  AlertCircle, ArrowDownWideNarrow, ArrowUpRight, BarChart3, Bot, Boxes, CircleHelp,
   Clock3, CreditCard, Database, Download, Layers3, LoaderCircle,
   Menu, MessageSquare, Package, Paperclip, RotateCw, Search, Send, Shirt, Sparkles, Star,
   Trash2, User, Users, Wallet, X,
@@ -18,7 +18,6 @@ import {
   loadProductData,
   loadCustomerData,
   loadSegmentData,
-  loadPredictionData,
   loadMethodologyData,
   loadNewProductPerformance,
   sendChatMessage,
@@ -35,7 +34,6 @@ const navItems = [
   { id: 'products', icon: Shirt },
   { id: 'customers', icon: Users },
   { id: 'segments', icon: Sparkles },
-  { id: 'prediction', icon: Activity },
   { id: 'newProducts', icon: Package },
   { id: 'methodology', icon: CircleHelp },
 ]
@@ -585,136 +583,6 @@ function CustomerSegmentation({ data }) {
   )
 }
 
-function SalesPrediction({ data, onPredict, result, loading, error }) {
-  const { t, i18n } = useTranslation()
-  const lang = i18n.language || 'en'
-  const [form, setForm] = useState({ Category: '', Brand: '', Size: '', Price: '1800', Discount: '10', Rating: '4.5' })
-
-  useEffect(() => {
-    if (data.models.categories?.length) {
-      setForm(current => ({
-        ...current,
-        Category: current.Category || data.models.categories[0],
-        Brand: current.Brand || data.models.brands[0],
-        Size: current.Size || data.models.sizes[0],
-      }))
-    }
-  }, [data.models])
-
-  const update = event => setForm(current => ({ ...current, [event.target.name]: event.target.value }))
-
-  return (
-    <div className="content-grid two-column">
-      <Panel title={t('prediction.engineTitle')} subtitle={t('prediction.engineSubtitle')}>
-        <form className="prediction-form" onSubmit={event => { event.preventDefault(); onPredict(form) }}>
-          <label>
-            {t('prediction.categoryLabel')}
-            <select name="Category" value={form.Category} onChange={update} required>
-              {data.models.categories.map(value => <option key={value} value={value}>{translateCategory(value, lang)}</option>)}
-            </select>
-          </label>
-          <div className="form-row">
-            <label>
-              {t('prediction.brandLabel')}
-              <select name="Brand" value={form.Brand} onChange={update} required>
-                {data.models.brands.map(value => <option key={value} value={value}>{value}</option>)}
-              </select>
-            </label>
-            <label>
-              {t('prediction.sizeLabel')}
-              <select name="Size" value={form.Size} onChange={update} required>
-                {data.models.sizes.map(value => <option key={value} value={value}>{value}</option>)}
-              </select>
-            </label>
-          </div>
-          <div className="form-row">
-            <label>
-              {t('prediction.priceLabel')}
-              <input name="Price" type="number" min="0.01" step="any" value={form.Price} onChange={update} required />
-            </label>
-            <label>
-              {t('prediction.discountLabel')}
-              <input name="Discount" type="number" min="0" max="100" step="any" value={form.Discount} onChange={update} required />
-            </label>
-          </div>
-          <label>
-            {t('prediction.ratingLabel')}
-            <input name="Rating" type="number" min="0" max="5" step="0.1" value={form.Rating} onChange={update} required />
-          </label>
-          <button className="primary-button" type="submit" disabled={loading}>
-            {loading ? <LoaderCircle size={16} className="spin" /> : <Activity size={16} />}
-            {loading ? t('prediction.forecastingBtn') : t('prediction.generateForecastBtn')}
-          </button>
-          {error && <p className="form-error" role="alert">{error}</p>}
-          {result && (
-            <div className="prediction-result" role="status">
-              <span>{t('prediction.estimatedDemand')}</span>
-              <strong>{Number(result.predicted_quantity).toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {t('common.units')}</strong>
-              <div className="selected-model">
-                <span>{t('prediction.activeModel')}</span>
-                <b>{result.selected_model}</b>
-              </div>
-              <div className="prediction-metrics">
-                <div><small>MAE</small><b>{Number(result.mae).toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}</b></div>
-                <div><small>RMSE</small><b>{Number(result.rmse).toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}</b></div>
-                <div><small>R² Score</small><b>{Number(result.r2).toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}</b></div>
-              </div>
-            </div>
-          )}
-        </form>
-      </Panel>
-      <div className="prediction-side">
-        <Panel title={t('prediction.benchmarkTitle')} subtitle={t('prediction.benchmarkSubtitle', { count: numeric(data.models.testing_rows, lang) })}>
-          <div className="selection-callout">
-            <span>{t('prediction.optimalSelection')}</span>
-            <strong>{data.models.selected_model}</strong>
-            <small>{data.models.selection_method}</small>
-          </div>
-          <Table
-            columns={[
-              {
-                key: 'model',
-                label: t('prediction.colAlgorithm'),
-                render: value => (
-                  <span className="model-name">
-                    {value}
-                    {value === data.models.selected_model && <small>{t('prediction.selectedBadge')}</small>}
-                  </span>
-                ),
-              },
-              { key: 'mae', label: 'MAE', render: val => Number(val).toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) },
-              { key: 'rmse', label: 'RMSE', render: val => Number(val).toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) },
-              { key: 'r2', label: 'R²', render: val => Number(val).toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) },
-            ]}
-            rows={data.models.metrics}
-          />
-        </Panel>
-        <Panel title={t('prediction.architecturalTitle')} subtitle={t('prediction.architecturalSubtitle')}>
-          <div className="model-notes">
-            <article>
-              <span className="model-index">01</span>
-              <div>
-                <strong>{t('prediction.lrTitle')}</strong>
-                <p>{t('prediction.lrDesc')}</p>
-              </div>
-            </article>
-            <article>
-              <span className="model-index forest">02</span>
-              <div>
-                <strong>{t('prediction.rfTitle')}</strong>
-                <p>{t('prediction.rfDesc')}</p>
-              </div>
-            </article>
-          </div>
-        </Panel>
-      </div>
-      <p className="method-note span-two">
-        {t('prediction.methodNote')}
-      </p>
-    </div>
-  )
-}
-
 function NewProductPerformance({ data }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language || 'en'
@@ -953,7 +821,6 @@ function Methodology() {
     { title: lang === 'bn' ? 'চাঙ্ক-ভিত্তিক প্রসেসিং' : 'Chunk-wise Processing', desc: lang === 'bn' ? '১ লাখ সারির ব্যাচ-ভিত্তিক ETL' : '100k-row chunk ETL pipeline' },
     { title: lang === 'bn' ? 'প্রসেসড অ্যানালিটিক্স আউটপুট' : 'Processed Analytics Outputs', desc: lang === 'bn' ? 'অপ্টিমাইজড JSON ও CSV ফাইল' : 'Optimized JSON & CSV artifacts' },
     { title: lang === 'bn' ? 'FastAPI ব্যাকএন্ড' : 'FastAPI Backend', desc: lang === 'bn' ? 'সাব-সেকেন্ড গতিতে তথ্য পরিবেশন' : 'Sub-second summary serving' },
-    { title: lang === 'bn' ? 'মেশিন লার্নিং প্রেডিকশন' : 'Machine Learning Prediction', desc: lang === 'bn' ? 'চাহিদা রিগ্রেশন মডেল' : 'Demand regression models' },
     { title: lang === 'bn' ? 'K-Means কাস্টমার সেগমেন্টেশন' : 'K-Means Customer Segmentation', desc: lang === 'bn' ? 'আচরণগত কোহোর্ট ক্লাস্টারিং' : 'Behavioral cohort clustering' },
     { title: lang === 'bn' ? 'React ড্যাশবোর্ড' : 'React Dashboard', desc: lang === 'bn' ? 'ইন্টারঅ্যাক্টিভ ভিজ্যুয়াল ইন্টারফেস' : 'Interactive visual workspace' },
   ]
@@ -992,8 +859,8 @@ function Methodology() {
     {
       label: lang === 'bn' ? 'React ড্যাশবোর্ড ইন্টারফেস' : 'React Dashboard Presentation',
       value: lang === 'bn'
-        ? 'React ফ্রন্টএন্ড সুন্দর ও ইন্টারঅ্যাক্টিভ চার্ট, কেপিআই কার্ড এবং প্রিডিকশন ইঞ্জিন মসৃণভাবে পরিবেশন করে। অফলাইন কম্পিউটেশন থেকে ফ্রন্টএন্ড উপস্থাপনা আলাদা থাকায় ড্যাশবোর্ড সবসময় দ্রুত ও কার্যকর থাকে।'
-        : 'The React frontend renders interactive visualizations, KPI cards, and predictive tools seamlessly. Decoupling storage and offline compute from frontend delivery avoids RAM overload and keeps the dashboard exceptionally fast.',
+        ? 'React ফ্রন্টএন্ড সুন্দর ও ইন্টারঅ্যাক্টিভ চার্ট এবং কেপিআই কার্ড মসৃণভাবে পরিবেশন করে। অফলাইন কম্পিউটেশন থেকে ফ্রন্টএন্ড উপস্থাপনা আলাদা থাকায় ড্যাশবোর্ড সবসময় দ্রুত ও কার্যকর থাকে।'
+        : 'The React frontend renders interactive visualizations and KPI cards seamlessly. Decoupling storage and offline compute from frontend delivery avoids RAM overload and keeps the dashboard exceptionally fast.',
     },
   ]
 
@@ -1001,7 +868,6 @@ function Methodology() {
     [lang === 'bn' ? 'সক্রিয় বিশ্লেষণ সময়সীমা' : 'Active Analysis Scope', lang === 'bn' ? '০১-০১-২০২৩ থেকে ৩১-০৫-২০২৬ (৪১ মাস; ফিল্টারকৃত অর্ডার: ৮৫,৪১,২৫০)' : '2023-01-01 to 2026-05-31 (41 months; filtered orders: 8,541,250)'],
     [lang === 'bn' ? 'সম্পূর্ণ ডেটাসেটের আকার' : 'Full Dataset Scale', lang === 'bn' ? '১,০০,০০,০০০টি লেনদেন (৪৮ মাস, ৩১-১২-২০২৬ পর্যন্ত)' : '10,000,000 transactions (48 months through 2026-12-31)'],
     [lang === 'bn' ? 'গ্রাহক সংখ্যা' : 'Customers', lang === 'bn' ? '৫,০০,০০০ অনন্য নিবন্ধিত ক্রেতা' : '500,000 unique registered buyers'],
-    [lang === 'bn' ? 'মডেল প্রশিক্ষণ পরিধি' : 'Prediction Model Training Scope', lang === 'bn' ? 'উৎস অযাচাইকৃত (স্ট্যাটিক্যালি সংরক্ষিত বেসলাইন ও র‍্যান্ডম ফরেস্ট মডেল; প্রশিক্ষণের ডেটাসেটের পরিধি অযাচাইকৃত)' : 'Provenance Unverified (Statically served baseline & RF models; training dataset scale unverified)'],
     [lang === 'bn' ? 'উদ্দেশ্য' : 'Purpose', lang === 'bn' ? 'বিজনেস অ্যানালিটিক্স ড্যাশবোর্ড প্রোটোটাইপ' : 'Business Analytics Dashboard prototype'],
     [lang === 'bn' ? 'র ডেটা স্টোরেজ' : 'Raw Storage', lang === 'bn' ? 'গুগল ড্রাইভ র ডেটা স্টোরেজ (বাহ্যিক ক্লাউড আর্কাইভ)' : 'Google Drive raw data storage (external archive)'],
     [lang === 'bn' ? 'আর্কিটেকচার' : 'Architecture', lang === 'bn' ? 'প্রসেসড অ্যানালিটিক্স ব্যাকএন্ডসহ FastAPI + React আর্কিটেকচার' : 'FastAPI + React architecture with processed analytics backend'],
@@ -1011,28 +877,22 @@ function Methodology() {
 
   const explanations = [
     [
-      lang === 'bn' ? 'MAE (গড় পরম ত্রুটি)' : 'MAE (Mean Absolute Error)',
-      lang === 'bn'
-        ? 'পূর্বাভাসকৃত ও প্রকৃত অর্ডারের মধ্যকার পরম ব্যবধানের গড়। কম মান উচ্চ নির্ভুলতা নির্দেশ করে।'
-        : 'Average absolute difference between predicted and observed order quantities. Lower values reflect superior forecasting precision.',
-    ],
-    [
-      lang === 'bn' ? 'RMSE (রুট মিন স্কয়ার্ড এরর)' : 'RMSE (Root Mean Squared Error)',
-      lang === 'bn'
-        ? 'পূর্বাভাস ত্রুটির বর্গের গড়ের বর্গমূল, যা বড় বিচ্যুতিগুলোকে কঠোরভাবে পেনাল্টি দেয়। স্ট্যান্ডার্ড রিগ্রেশন তুলনা মেট্রিক।'
-        : 'Square root of mean squared prediction errors, penalizing large forecasting deviations. Standard metric for regression comparison.',
-    ],
-    [
-      lang === 'bn' ? 'R² স্কোর (নির্ণায়ক সহগ)' : 'R² Score',
-      lang === 'bn'
-        ? 'রিগ্রেশন মডেল দ্বারা বিক্রয়ের মোট পরিবর্তনের কতটুকু ব্যাখ্যা করা যায় তার গাণিতিক পরিমাপ।'
-        : 'Coefficient of determination measuring the proportion of sales variation explained by the mathematical regression pipeline.',
-    ],
-    [
       lang === 'bn' ? 'K-Means ক্লাস্টারিং' : 'K-Means Clustering',
       lang === 'bn'
         ? 'আনসুপারভাইজড সেগমেন্টেশন যা মোট ব্যয়, অর্ডারের সংখ্যা ও আইটেমের পরিমাণের ওপর ভিত্তি করে ৫ লাখ গ্রাহককে ৩টি স্তরে ভাগ করেছে।'
         : 'Unsupervised segmentation grouping 500,000 customer accounts into 3 behavioral tiers based on standardized gross spend, order frequency, and item count.',
+    ],
+    [
+      lang === 'bn' ? 'কোহোর্ট ও বাজার গ্রহণযোগ্যতা ট্র্যাকিং' : 'Cohort Adoption Analysis',
+      lang === 'bn'
+        ? 'প্রথম বিক্রয় থেকে শুরু করে পণ্যভিত্তিক গ্রাহক গ্রহণযোগ্যতা কার্ভ এবং ক্যাটাগরি বেঞ্চমার্কের সাপেক্ষে সময়ভিত্তিক পারফরম্যান্স বিশ্লেষণ।'
+        : 'Tracks customer adoption curves and repeat purchasing patterns across each product\'s observation window against category benchmarks.',
+    ],
+    [
+      lang === 'bn' ? 'নিট বিক্রয় হিসাব পদ্ধতি' : 'Net Sales Accounting',
+      lang === 'bn'
+        ? 'নিট বিক্রয় = মূল্য × পরিমাণ × (১ − ছাড় / ১০০)। ছাড়-পরবর্তী প্রকৃত বাণিজ্যিক আয় নির্ভুলভাবে প্রতিফলিত করে।'
+        : 'Net Sales = Price × Quantity × (1 − Discount / 100). Accurately reflects true realized commercial revenue after promotional discounts.',
     ],
   ]
 
@@ -1682,8 +1542,18 @@ function Chatbot({ lang }) {
 export default function App() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language || 'en'
-  const [active, setActive] = useState('overview')
+  const [active, setActive] = useState(() => (typeof window !== 'undefined' && window.location.hash ? window.location.hash.replace('#', '') : 'overview'))
   const [menuOpen, setMenuOpen] = useState(false)
+
+  // Listen for hash changes to support direct deep linking
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.replace('#', '')
+      if (hash) setActive(hash)
+    }
+    window.addEventListener('hashchange', handleHash)
+    return () => window.removeEventListener('hashchange', handleHash)
+  }, [])
 
   // Sync lang attribute on HTML element
   useEffect(() => {
@@ -1706,11 +1576,6 @@ export default function App() {
   const [pageData, setPageData] = useState({})
   const [pageLoading, setPageLoading] = useState({})
   const [pageErrors, setPageErrors] = useState({})
-
-  // Prediction form states
-  const [prediction, setPrediction] = useState(null)
-  const [predictionError, setPredictionError] = useState('')
-  const [predictionLoading, setPredictionLoading] = useState(false)
 
   // Initial startup: Load ONLY /api/overview
   async function loadInitialOverview() {
@@ -1761,8 +1626,6 @@ export default function App() {
         result = await loadCustomerData()
       } else if (pageId === 'segments') {
         result = await loadSegmentData()
-      } else if (pageId === 'prediction') {
-        result = await loadPredictionData()
       } else if (pageId === 'newProducts') {
         result = await loadNewProductPerformance()
       } else if (pageId === 'methodology') {
@@ -1799,27 +1662,9 @@ export default function App() {
     }
   }
 
-  async function submitPrediction(form) {
-    setPredictionLoading(true)
-    setPredictionError('')
-    setPrediction(null)
-    try {
-      const body = {
-        ...form,
-        Price: Number(form.Price),
-        Discount: Number(form.Discount),
-        Rating: Number(form.Rating),
-      }
-      setPrediction(await apiRequest('/predict', { method: 'POST', body: JSON.stringify(body) }))
-    } catch (error) {
-      setPredictionError(error.message)
-    } finally {
-      setPredictionLoading(false)
-    }
-  }
-
   const selectPage = id => {
     setActive(id)
+    if (typeof window !== 'undefined') window.location.hash = id
     setMenuOpen(false)
   }
 
@@ -1836,7 +1681,6 @@ export default function App() {
     products: pageData.products?.products,
     customers: pageData.customers?.customers,
     segments: pageData.segments?.segments,
-    models: pageData.prediction?.models,
     newProducts: pageData.newProducts?.performance,
     methodology: pageData.methodology?.methodology || overviewData?.overview?.methodology || {},
   }
@@ -2010,20 +1854,6 @@ export default function App() {
                   </div>
                 ) : combinedData.segments ? (
                   <CustomerSegmentation data={combinedData} />
-                ) : null
-              )}
-
-              {active === 'prediction' && (
-                pageLoading.prediction ? (
-                  <div className="loading-state"><LoaderCircle className="spin" size={24} /><span>{t('prediction.loading')}</span></div>
-                ) : pageErrors.prediction ? (
-                  <div className="error-state" role="alert">
-                    <strong>{t('prediction.unavailable')}</strong>
-                    <p>{pageErrors.prediction}</p>
-                    <button className="primary-button" onClick={() => loadPage('prediction', true)}><RotateCw size={15} />{t('common.retry')}</button>
-                  </div>
-                ) : combinedData.models ? (
-                  <SalesPrediction data={combinedData} onPredict={submitPrediction} result={prediction} loading={predictionLoading} error={predictionError} />
                 ) : null
               )}
 

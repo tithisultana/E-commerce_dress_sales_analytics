@@ -138,15 +138,7 @@ export async function loadSegmentData() {
 }
 
 /**
- * 6. Sales Prediction Page (Lazy loaded)
- */
-export async function loadPredictionData() {
-  const models = await apiRequest('/prediction/models')
-  return { models }
-}
-
-/**
- * 7. Methodology Page (Lazy loaded)
+ * 6. Methodology Page (Lazy loaded)
  */
 export async function loadMethodologyData() {
   const methodology = await apiRequest('/about')
@@ -154,7 +146,7 @@ export async function loadMethodologyData() {
 }
 
 /**
- * 8. New Product Performance Page (Lazy loaded)
+ * 7. New Product Performance Page (Lazy loaded)
  */
 export async function loadNewProductPerformance() {
   const performance = await apiRequest('/products/new-performance')
@@ -174,7 +166,6 @@ export async function loadDashboardData() {
     apiRequest('/products/top?limit=30'),
     apiRequest('/customers/analysis?limit=200'),
     apiRequest('/customers/segments'),
-    apiRequest('/prediction/models'),
     apiRequest('/about'),
   ])
 
@@ -191,8 +182,7 @@ export async function loadDashboardData() {
     products: val(5, { products: [], materials: [], sizes: [] }),
     customers: val(6, null),
     segments: val(7, { summary: [], customers: [] }),
-    models: val(8, { metrics: [], categories: [], brands: [], sizes: [] }),
-    methodology: val(9, {}),
+    methodology: val(8, {}),
   }
 }
 
