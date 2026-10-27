@@ -495,13 +495,6 @@ def methodology_data() -> dict:
             "duplicate_rows_removed": int(m.get("duplicate_rows_removed", 0)),
             "revenue_definition":     m["revenue_definition"],
             "segmentation":           m["segmentation"],
-            "prediction": (
-                "Quantity prediction (Linear Regression baseline and Random Forest). "
-                "Provenance Unverified: Model weights and evaluation metrics (MAE: 0.828, RMSE: 1.043, R²: 0.074) "
-                "are statically precomputed in prediction.py for instant serving without runtime training. "
-                "There is no verifiable training pipeline script or metadata artifact in the repository "
-                "documenting the exact training dataset size or date range. Dataset scale and date scope provenance remain unverified."
-            ),
         }
 
     frame  = get_dataset()
@@ -522,10 +515,6 @@ def methodology_data() -> dict:
             "Customer spending in EDA uses Net Sales after discount, "
             "while K-Means segmentation uses gross sales (Price x Quantity), "
             "following the respective notebooks."
-        ),
-        "prediction": (
-            "Quantity prediction. Provenance Unverified: Static baseline weights and evaluation metrics "
-            "are served without runtime training; no verifiable offline training metadata artifact exists in the repo."
         ),
     }
 

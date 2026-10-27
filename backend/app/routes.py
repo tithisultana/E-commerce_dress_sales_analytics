@@ -3,7 +3,6 @@ from fastapi import APIRouter, HTTPException, Query
 from . import analytics
 from .chat import ChatRequest, ChatResponse, generate_chat_reply
 from .data import get_dataset
-from .prediction import PredictionInput, model_evaluation_data, predict_quantity
 
 
 router = APIRouter(prefix="/api")
@@ -72,19 +71,6 @@ def customers(limit: int = Query(default=200, ge=1, le=1000)) -> dict:
 @router.get("/customers/segments")
 def customer_segments() -> dict:
     return analytics.customer_segments_data()
-
-
-@router.get("/prediction/models")
-def prediction_models() -> dict:
-    return model_evaluation_data()
-
-
-@router.post("/predict")
-def predict(request: PredictionInput) -> dict:
-    try:
-        return predict_quantity(request)
-    except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.get("/about")

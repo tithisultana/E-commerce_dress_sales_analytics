@@ -125,8 +125,7 @@ def get_prediction_sample_10m() -> pd.DataFrame:
 
     A stratified sample of ≤ 4,500 customers (1,500 per K-Means cluster).
     Columns: Customer_ID, spend, orders, cluster.
-    Used for the Customer Segmentation scatter chart and as the training
-    dataset for prediction models when 10M files are active.
+    Used for the Customer Segmentation scatter chart.
 
     Scatter chart rendering: only 4,500 points — browser never receives
     or renders the full 500k customer table.
@@ -169,9 +168,6 @@ def get_dataset() -> pd.DataFrame:
     Used as a fallback when 10M processed files are not yet available
     (e.g. on a fresh clone before running scripts/generate_10m_processed_data.py
     in Google Colab).
-
-    This function is also used by prediction.py when building the interactive
-    prediction form dropdowns from the CSV domain values.
     """
     if not DATA_PATH.is_file():
         raise DatasetError(f"Dataset not found: {DATA_PATH}")

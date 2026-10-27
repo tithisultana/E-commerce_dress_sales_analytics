@@ -1,7 +1,7 @@
 # E-Commerce Dress Sales Analysis
 ## Business Analytics Dashboard
 
-An enterprise-grade business analytics dashboard prototype for e-commerce dress sales intelligence. The platform delivers executive-level operational visibility, historical sales trajectories, catalog performance, buyer segmentation, and predictive demand forecasting.
+An enterprise-grade business analytics dashboard prototype for e-commerce dress sales intelligence. The platform delivers executive-level operational visibility, historical sales trajectories, catalog performance, buyer segmentation, and new product adoption analytics.
 
 > **Note on Dataset:** The dataset utilized across this project comprises 10,000,000 transaction records prepared and generated for academic demonstration and machine learning analysis. Core analytical decisions and machine learning algorithms were initially formulated on a base empirical dataset and subsequently scaled through a chunk-wise batch processing pipeline.
 
@@ -16,7 +16,7 @@ An enterprise-grade business analytics dashboard prototype for e-commerce dress 
 - **Product & Catalog Performance:** Bestselling silhouettes, revenue contribution by category (Saree, Dress, Kurti, Salwar Kameez, etc.), brand dominance, and promotional discount depth.
 - **Customer Account Intelligence:** Buyer lifetime value, repeat purchase rates, regional customer densities, and searchable customer ledger.
 - **Behavioral Customer Segmentation:** Unsupervised K-Means clustering ($k=3$) grouping buyers into distinct spending and frequency tiers.
-- **Predictive Demand Forecasting:** Supervised regression modeling (Linear Regression baseline and Random Forest Regressor) estimating product demand from category, brand, size, price, discount, and rating attributes.
+- **New Product Performance Analytics:** Customer adoption curves, monthly sales trajectories from first recorded sale through the active cutoff, repeat buyer rates, and same-category benchmark comparisons.
 
 ---
 
@@ -82,7 +82,7 @@ The project decouples offline big data processing from online real-time dashboar
                             ▼
 ┌────────────────────────────────────────────────────────┐
 │                     React Dashboard                    │
-│   (Interactive charts, KPI cards, tables & forecasts)  │
+│   (Interactive charts, KPI cards, tables & analytics)  │
 └────────────────────────────────────────────────────────┘
 ```
 
@@ -111,7 +111,7 @@ The research and development lifecycle is documented across four Jupyter noteboo
 | Notebook | Purpose & Core Logic |
 |---|---|
 | **`01_E-Commerce_Dress_Sales_EDA.ipynb`** | **Exploratory Data Analysis:** Data cleaning, missing value handling, temporal seasonality extraction, Net Sales calculation (`Price × Quantity × (1 − Discount/100)`), category distributions, and baseline KPI formulation. |
-| **`02_E-Commerce_Dress_Sales_Prediction.ipynb`** | **Predictive Demand Modeling:** Supervised regression pipeline using `SimpleImputer` (median for numeric, mode for categorical) and `OneHotEncoder(handle_unknown='ignore')`. 80/20 train/test holdout evaluation comparing Linear Regression against Random Forest Regressor (200 trees) on MAE, RMSE, and $R^2$. |
+| **`02_E-Commerce_Dress_Sales_Prediction.ipynb`** | **Predictive Demand Modeling (Exploratory Research):** Historical baseline regression analysis exploring linear and tree-based models on the initial empirical sample. |
 | **`03_E-Commerce_Customer_Segmentation.ipynb`** | **Customer Behavioral Segmentation:** Aggregating transactional history into customer-level RFM features (`Total_Spending`, `Total_Items`, `Total_Orders`), standardizing features via `StandardScaler`, and fitting K-Means ($k=3$) to identify distinct buyer segments. |
 | **`04_10M_Data_Processing_Pipeline.ipynb`** | **Large-Scale Processing Pipeline:** Documents how the logic from Notebooks 01–03 is operationalized at 10M scale. Illustrates Google Drive cloud mounting, chunk-wise generation, running accumulators, output verification, and integration with the live web application. |
 
@@ -123,7 +123,7 @@ The backend is built with **FastAPI** (`backend/main.py` and `backend/app/`):
 
 - **Data Access Layer (`backend/app/data.py`):** Automatically detects if the 10M processed summary files are available (`USE_10M_DATA = True`). Caches JSON and CSV summaries in memory using `@lru_cache`, while retaining full fallback support to the base CSV (`data/dress_sales.csv`).
 - **Analytics Engine (`backend/app/analytics.py`):** Serves structured endpoints for KPIs, monthly trends, categorical performance, payment methods, geographic densities, customer account summaries, and methodology metadata directly from processed artifacts without live recalculation.
-- **Machine Learning Layer (`backend/app/prediction.py`):** Trains and caches the scikit-learn preprocessing pipeline, Linear Regression baseline, and Random Forest Regressor (200 estimators). Evaluates holdout test metrics, identifies the optimal model, extracts Random Forest feature importances, and serves single-item real-time demand predictions via `POST /api/predict`.
+- **AI Chatbot Service (`backend/app/chat.py`):** Powers the bilingual AI Help Assistant supporting text queries and chart/image uploads via Google Gemini API.
 - **API Router (`backend/app/routes.py`):** Exposes clean RESTful endpoints adhering to OpenAPI specifications (interactive documentation at `/docs`).
 
 ---
@@ -139,8 +139,8 @@ Built with **React**, **Vite**, **Recharts**, and **Lucide Icons** (`frontend/sr
   3. **Product Analytics:** Top 10 bestselling products by units, revenue leaders, promotional discount depth analysis, and searchable product catalogue table with category filtering.
   4. **Customer Analytics:** Account base metrics, lifetime value, purchase frequency, district distribution, top account spenders, and paginated customer account ledger.
   5. **Customer Segmentation:** Segment cohort distribution donut, centroid statistics cards, and 4,500-point behavioral scatter plot mapping gross spend against order count.
-  6. **Sales Prediction:** Interactive demand forecasting form, model benchmark comparison table, holdout test metrics (MAE, RMSE, $R^2$), and algorithm notes.
-  7. **Methodology:** Complete 8-step data architecture workflow, storage layer explanation, dataset specifications table, evaluation metric definitions, and formula references.
+  6. **New Product Performance:** Customer adoption curves, monthly trajectory from first recorded sale to 2026-05-31 cutoff, repeat buyers, and category benchmarks.
+  7. **Methodology:** Complete data architecture workflow, storage layer explanation, dataset specifications table, evaluation metric definitions, and formula references.
 
 ---
 
