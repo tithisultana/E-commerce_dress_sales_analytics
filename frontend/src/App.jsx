@@ -1400,7 +1400,7 @@ function Chatbot({ lang }) {
                   {t('chatbot.suggestedTitle')}
                 </div>
                 <div className="chatbot-chips">
-                  {['q1', 'q2', 'q3', 'q4'].map(qKey => (
+                  {['q1', 'q2', 'q3'].map(qKey => (
                     <button
                       key={qKey}
                       className="chatbot-chip"
